@@ -1,0 +1,65 @@
+body{
+    background: black;
+    color:white;
+}
+
+#buttonContainer{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+#myButton{
+  margin:auto;
+  z-index: 3;
+}
+
+#myContainer {
+  display:block;
+  width: 400px;
+  height: 400px;
+  position: relative;
+  background: #2c2cc8;
+  margin:auto;
+}
+
+#myAnimation {
+  position: relative;
+  top: 37.5%;
+  width: 100px;
+  height: 100px;
+  margin: auto;
+  background: auto;
+  text-align: center;
+}
+
+#myAnimation p {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+}
+
+#myRocket{
+  position: absolute;
+  transform: translate(50%, 90%);
+  height: 200px;
+  width: 200px;
+}
+
+#logoContainer{
+  display:none;
+  width: 400px;
+  height: 400px;
+  position: relative;
+  margin:auto;
+  background: black;
+}
+
+#logoContainer img{
+  transition: transform 3s ease;
+  /*transform: rotate(-60deg);*/
+}
