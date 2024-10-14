@@ -1,13 +1,20 @@
 body{
-    background: black;
-    color:white;
+    background: #7F00FF;
+    color: white;
+}
+
+#pcimage{
+  /*background-image:url('file:///Users/gabeperez/Documents/GitHub/GabrielAlexPerez.github.io/assets/img/computer_image_placeholder.jpg');
+  background-repeat:no-repeat;
+  background-size: 68% 275%;
+  background-position: center top;*/
 }
 
 #buttonContainer{
-  display: flex;
   justify-content: center;
-  align-items: center;
-
+  position:relative;
+  top:90%;
+  left:80%;
 }
 
 #myButton{
@@ -15,13 +22,25 @@ body{
   z-index: 3;
 }
 
+#myBorder{
+  background: #000;
+  width: 400px;
+  height: 400px;
+  position: relative;
+
+}
+
 #myContainer {
   display:block;
   width: 400px;
   height: 400px;
   position: relative;
+  border: 5px solid #000;
   background: #2c2cc8;
   margin:auto;
+  border-radius: 0%;
+  top:-1%;
+  left:-1%;
 }
 
 #myAnimation {
@@ -52,14 +71,93 @@ body{
 
 #logoContainer{
   display:none;
-  width: 400px;
-  height: 400px;
+  width: 350px;
+  height: 350px;
   position: relative;
   margin:auto;
   background: black;
+  border-radius: 50%;
+  top:5%;
+  left:0%;
 }
 
 #logoContainer img{
   transition: transform 3s ease;
   /*transform: rotate(-60deg);*/
+}
+
+
+
+
+
+
+.pc {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    margin:auto;
+}
+
+.box{
+  position:relative;
+  height: 600px;
+  width: 250px;
+  float:right;
+  background: #D2B48C;
+  border: 2px solid #000;
+  border-radius: 10%;
+  left: -10%;
+}
+
+.monitor {
+    width: 550px;
+    height: 550px;
+    background: #D2B48C;
+    border: 2px solid #000;
+    border-radius: 10%;
+    position: relative;
+    margin-bottom: 10px;
+    margin:auto;
+}
+
+.monitorKeyboardCombo{
+  height:600px;
+  width: 800px;
+  position:relative;
+  margin:auto;
+  float:left;
+  left:10%;
+}
+
+.screen {
+    width: 400px;
+    height: 400px;
+    background: #000;
+    border: 20px solid #967859;
+    border-radius: 5%;
+    position: absolute;
+    top: 6%;
+    left: 10%;
+}
+
+.keyboard {
+    width: 800px;
+    height: 30px;
+    background: #D2B48C;
+    border: 2px solid #000;
+    border-radius: 5px;
+    position: relative;
+    margin:auto;
+    top:10%;
+}
+
+
+.mouse {
+    width: 30px;
+    height: 15px;
+    background: #444;
+    border-radius: 5px;
+    position: relative;
+    top: 110%;
+    left: 100%;
 }

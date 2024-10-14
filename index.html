@@ -5,23 +5,50 @@
 </head>
 
 <body>
-  <h1>Gabriel Perez</h1>
-  <p id="buttonContainer">
+  <div id="pcimage">
+    <h1>Gabriel Perez</h1>
 
-    <button id = "myButton" style="margin:auto;" onclick="myMove()">Launch</button>
-  </p>
 
-  <div id = "myBorder" style = "background:black">
-    <div id="logoContainer">
-      <img src="assets/img/logo.png" style="height: 100%;width: 100%;margin: auto;top: 50%;left: 50%;">
-    </div>
-    <div id ="myContainer">
-      <div id ="myAnimation" ><p id ="myCounter">5</p></div>
-      <div id="myRocket">
-        <img src="assets/img/PreLaunchRocket.png" style="height: 100%;width: 100%;margin: auto;top: 50%;left: 50%;">
+
+
+
+    <div class="pc">
+      <div class="monitorKeyboardCombo">
+      <div class="monitor">
+        <div class="screen">
+
+
+          <div id = "myBorder">
+            <div id="logoContainer">
+              <img src="assets/img/logo.png" style="height: 100%;width: 100%;margin: auto;top: 50%;left: 50%;">
+            </div>
+            <div id ="myContainer">
+              <div id ="myAnimation" ><p id ="myCounter">5</p></div>
+              <div id="myRocket">
+                <img src="assets/img/PreLaunchRocket.png" style="height: 100%;width: 100%;margin: auto;top: 50%;left: 50%;">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div id="buttonContainer">
+          <button id = "myButton" onclick="myMove()">Launch</button>
+        </div>
+
       </div>
+      <div class="keyboard"></div>
     </div>
+
+
+
+    <div class="box">
+
+    </div>
+
+    <div class="mouse"></div>
   </div>
+
 
   <script src="js/scripts.js"></script>
 
@@ -45,9 +72,9 @@
 
                 setTimeout(function() {
                   $('#logoContainer').css('transform', 'rotate(-65deg)');
-              },1500);
+                },1500);
 
-            }, 1000);
+              }, 1000);
 
             });
           }, 100);
