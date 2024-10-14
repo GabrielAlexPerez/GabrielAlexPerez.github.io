@@ -3,13 +3,6 @@ body{
     color: white;
 }
 
-#pcimage{
-  /*background-image:url('file:///Users/gabeperez/Documents/GitHub/GabrielAlexPerez.github.io/assets/img/computer_image_placeholder.jpg');
-  background-repeat:no-repeat;
-  background-size: 68% 275%;
-  background-position: center top;*/
-}
-
 #buttonContainer{
   justify-content: center;
   position:relative;
@@ -86,19 +79,14 @@ body{
   /*transform: rotate(-60deg);*/
 }
 
-
-
-
-
-
-.pc {
+#pc {
     position: relative;
     height: 100%;
     width: 100%;
     margin:auto;
 }
 
-.box{
+#box{
   position:relative;
   height: 600px;
   width: 250px;
@@ -109,7 +97,7 @@ body{
   left: -10%;
 }
 
-.monitor {
+#monitor {
     width: 550px;
     height: 550px;
     background: #D2B48C;
@@ -120,7 +108,7 @@ body{
     margin:auto;
 }
 
-.monitorKeyboardCombo{
+#monitorKeyboardCombo{
   height:600px;
   width: 800px;
   position:relative;
@@ -129,7 +117,7 @@ body{
   left:10%;
 }
 
-.screen {
+#screen {
     width: 400px;
     height: 400px;
     background: #000;
@@ -140,7 +128,7 @@ body{
     left: 10%;
 }
 
-.keyboard {
+#keyboard {
     width: 800px;
     height: 30px;
     background: #D2B48C;
@@ -151,8 +139,7 @@ body{
     top:10%;
 }
 
-
-.mouse {
+#mouse {
     width: 30px;
     height: 15px;
     background: #444;
