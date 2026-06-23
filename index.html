@@ -49,34 +49,42 @@
                 </div>
             </section>
 
-            <section class="bucket-section">
-                <div class="bucket-header">
-                    <h2>The Bucket</h2>
-                    <button id="add-btn" class="add-btn" title="Toss one in">+</button>
-                </div>
-
-                <form id="activity-form" class="activity-form hidden">
-                    <input type="text" id="activity-name" placeholder="What's on the list?" required>
-                    <select id="activity-priority">
-                        <option value="hot">🔥 Hot priority</option>
-                        <option value="warm" selected>☀️ Warm priority</option>
-                        <option value="chill">🧊 Chill priority</option>
-                    </select>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Drop it in!</button>
-                        <button type="button" id="cancel-add" class="btn btn-secondary">Nah</button>
+            <section class="kanban-section">
+                <div class="kanban-board">
+                    <div class="kanban-column sloshing">
+                        <div class="kanban-col-header">
+                            <h3>🌊 Sloshing Around</h3>
+                            <button id="add-btn" class="add-btn" title="Toss one in">+</button>
+                        </div>
+                        <form id="activity-form" class="activity-form hidden">
+                            <input type="text" id="activity-name" placeholder="What's on the list?" required>
+                            <select id="activity-priority">
+                                <option value="hot">🔥 Hot</option>
+                                <option value="warm" selected>☀️ Warm</option>
+                                <option value="chill">🧊 Chill</option>
+                            </select>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Toss it in!</button>
+                                <button type="button" id="cancel-add" class="btn btn-secondary">Nah</button>
+                            </div>
+                        </form>
+                        <div class="kanban-items" id="col-sloshing" data-column="sloshing"></div>
                     </div>
-                </form>
 
-                <div class="bucket-container">
-                    <div class="bucket-rim"></div>
-                    <div class="bucket-body" id="bucket-list">
-                        <p class="bucket-empty">Bucket's empty!<br>Hit + to toss something in.</p>
+                    <div class="kanban-column locked">
+                        <div class="kanban-col-header">
+                            <h3>🔒 Locked In</h3>
+                        </div>
+                        <div class="kanban-items" id="col-locked" data-column="locked"></div>
                     </div>
-                    <div class="bucket-base"></div>
-                </div>
 
-                <p class="bucket-hint">Drag items onto the calendar to schedule them<br>Click an item to remove it</p>
+                    <div class="kanban-column kicked">
+                        <div class="kanban-col-header">
+                            <h3>⚰️ Kicked the Bucket</h3>
+                        </div>
+                        <div class="kanban-items" id="col-kicked" data-column="kicked"></div>
+                    </div>
+                </div>
             </section>
         </div>
     </div>

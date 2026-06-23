@@ -13,13 +13,12 @@
     --teal: #00b4d8;
     --text: #2d3142;
     --text-muted: #7a7d8b;
-    --available: #06d6a0;
-    --maybe: #ffd166;
     --unavailable: #d4d4d4;
     --scheduled: #118ab2;
     --hot: #ef476f;
     --warm: #ffd166;
     --chill: #06d6a0;
+    --kicked: #9d8189;
     --radius: 12px;
     --shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
@@ -36,7 +35,7 @@ body {
 }
 
 .app {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
@@ -106,32 +105,52 @@ header h1 {
 
 .btn-block {
     width: 100%;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
     background: var(--accent);
     color: white;
+    transition: transform 0.1s, box-shadow 0.2s;
 }
 
 .btn-block:hover {
     background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+/* Layout */
 .main-layout {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: auto 1fr;
     gap: 2rem;
     align-items: start;
 }
 
-@media (max-width: 850px) {
+@media (max-width: 950px) {
     .main-layout {
         grid-template-columns: 1fr;
     }
 }
 
+/* Calendar */
 .calendar-section {
     background: var(--surface);
     border-radius: var(--radius);
     padding: 1.5rem;
     box-shadow: var(--shadow);
+    width: 360px;
+}
+
+@media (max-width: 950px) {
+    .calendar-section {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
 }
 
 .calendar-nav {
@@ -142,7 +161,7 @@ header h1 {
 }
 
 .calendar-nav h2 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     color: var(--text);
 }
 
@@ -174,10 +193,10 @@ header h1 {
 
 .day-header {
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
     color: var(--text-muted);
-    padding: 0.5rem 0;
+    padding: 0.4rem 0;
     text-transform: uppercase;
 }
 
@@ -191,7 +210,7 @@ header h1 {
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
     position: relative;
@@ -260,18 +279,18 @@ header h1 {
 }
 
 .unavail-header h3 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: var(--text);
 }
 
 .toggle-btn {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     border: none;
     background: var(--unavailable);
     color: var(--text);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
     display: flex;
@@ -287,8 +306,8 @@ header h1 {
 .unavail-form {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    margin-bottom: 1rem;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
     animation: slideDown 0.2s ease-out;
 }
 
@@ -297,12 +316,12 @@ header h1 {
 }
 
 .unavail-form input {
-    padding: 0.6rem 0.8rem;
+    padding: 0.5rem 0.7rem;
     border: 2px solid var(--surface-2);
     border-radius: var(--radius);
     background: var(--bg);
     color: var(--text);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     transition: border-color 0.15s;
 }
 
@@ -314,33 +333,34 @@ header h1 {
 .date-range {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .date-range input {
     flex: 1;
+    min-width: 0;
 }
 
 .date-range span {
     color: var(--text-muted);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 .unavail-list {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.3rem;
 }
 
 .unavail-item {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.5rem;
     background: var(--bg);
-    padding: 0.5rem 0.8rem;
+    padding: 0.4rem 0.7rem;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     border-left: 3px solid var(--unavailable);
 }
 
@@ -354,7 +374,7 @@ header h1 {
 
 .unavail-item .unavail-dates {
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
 }
 
 .unavail-item .unavail-delete {
@@ -362,7 +382,7 @@ header h1 {
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1rem;
     padding: 0.1rem 0.3rem;
     border-radius: 4px;
 }
@@ -372,32 +392,65 @@ header h1 {
     background: rgba(239, 71, 111, 0.1);
 }
 
-/* Bucket section */
-.bucket-section {
-    display: flex;
-    flex-direction: column;
+/* Kanban */
+.kanban-section {
+    min-width: 0;
+}
+
+.kanban-board {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 1rem;
 }
 
-.bucket-header {
+@media (max-width: 950px) {
+    .kanban-board {
+        grid-template-columns: 1fr;
+    }
+}
+
+.kanban-column {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    min-height: 200px;
+}
+
+.kanban-column.sloshing {
+    border-top: 4px solid var(--teal);
+}
+
+.kanban-column.locked {
+    border-top: 4px solid var(--scheduled);
+}
+
+.kanban-column.kicked {
+    border-top: 4px solid var(--kicked);
+}
+
+.kanban-col-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.bucket-header h2 {
-    font-size: 1.3rem;
+.kanban-col-header h3 {
+    font-size: 0.95rem;
     color: var(--text);
 }
 
 .add-btn {
-    width: 42px;
-    height: 42px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     border: none;
     background: var(--accent);
     color: white;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 700;
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
@@ -413,13 +466,9 @@ header h1 {
 }
 
 .activity-form {
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    box-shadow: var(--shadow);
+    gap: 0.5rem;
     animation: slideDown 0.2s ease-out;
 }
 
@@ -434,12 +483,12 @@ header h1 {
 
 .activity-form input,
 .activity-form select {
-    padding: 0.7rem 0.9rem;
+    padding: 0.6rem 0.8rem;
     border: 2px solid var(--surface-2);
     border-radius: var(--radius);
     background: var(--bg);
     color: var(--text);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     transition: border-color 0.15s;
 }
 
@@ -451,120 +500,90 @@ header h1 {
 
 .form-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .form-actions .btn {
     flex: 1;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
 }
 
-/* The bucket visual */
-.bucket-container {
-    position: relative;
-}
-
-.bucket-rim {
-    height: 12px;
-    background: linear-gradient(to bottom, #8B7355, #6B5740);
-    border-radius: 6px 6px 0 0;
-    margin: 0 4px;
-}
-
-.bucket-body {
-    background: linear-gradient(to bottom, #a08060, #7a5c3a);
-    border-radius: 0 0 12px 12px;
-    min-height: 120px;
-    max-height: 380px;
-    overflow-y: auto;
-    padding: 0.8rem;
+/* Kanban items */
+.kanban-items {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    position: relative;
-    box-shadow: inset 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.bucket-body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 10%;
-    right: 10%;
-    height: 20px;
-    background: radial-gradient(ellipse, rgba(255,255,255,0.1) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.bucket-base {
-    height: 8px;
-    background: #5a4030;
-    border-radius: 0 0 8px 8px;
-    margin: 0 12px;
-}
-
-.bucket-empty {
-    color: rgba(255,255,255,0.6);
-    text-align: center;
-    padding: 2rem 1rem;
-    font-style: italic;
-    line-height: 1.5;
-}
-
-.bucket-hint {
-    text-align: center;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    font-style: italic;
-    line-height: 1.5;
-}
-
-/* Bucket items (draggable) */
-.bucket-item {
-    background: rgba(255, 255, 255, 0.92);
+    gap: 0.4rem;
+    min-height: 60px;
     border-radius: 8px;
-    padding: 0.7rem 0.9rem;
+    padding: 0.3rem;
+    transition: background 0.15s;
+}
+
+.kanban-items.drop-hover {
+    background: rgba(0, 180, 216, 0.08);
+    outline: 2px dashed var(--teal);
+    outline-offset: -2px;
+}
+
+.kanban-item {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.5rem;
     cursor: grab;
     transition: transform 0.1s, box-shadow 0.15s;
     border-left: 4px solid var(--warm);
     user-select: none;
+    font-size: 0.85rem;
 }
 
-.bucket-item:active {
+.kanban-item:active {
     cursor: grabbing;
 }
 
-.bucket-item:hover {
-    transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+.kanban-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
 }
 
-.bucket-item.hot { border-left-color: var(--hot); }
-.bucket-item.warm { border-left-color: var(--warm); }
-.bucket-item.chill { border-left-color: var(--chill); }
+.kanban-item.hot { border-left-color: var(--hot); }
+.kanban-item.warm { border-left-color: var(--warm); }
+.kanban-item.chill { border-left-color: var(--chill); }
 
-.bucket-item.scheduled-item {
-    opacity: 0.6;
-    border-style: dashed;
-}
-
-.bucket-item .item-name {
+.kanban-item .item-name {
     flex: 1;
     font-weight: 600;
-    font-size: 0.9rem;
     color: var(--text);
 }
 
-.bucket-item .item-date {
+.kanban-item .item-date {
     font-size: 0.7rem;
     color: var(--text-muted);
+    white-space: nowrap;
 }
 
-.bucket-item.dragging {
+.kanban-item.dragging {
     opacity: 0.4;
     transform: scale(0.95);
+}
+
+.kicked .kanban-item {
+    opacity: 0.5;
+    text-decoration: line-through;
+    border-left-color: var(--kicked);
+}
+
+.kanban-empty {
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 0.8rem;
+    font-style: italic;
+    padding: 1.5rem 0.5rem;
+    line-height: 1.4;
 }
 
 /* Context menu */
@@ -596,7 +615,7 @@ header h1 {
     background: var(--surface-2);
 }
 
-.context-menu button:last-child:hover {
+.context-menu button.danger:hover {
     background: rgba(239, 71, 111, 0.1);
     color: var(--hot);
 }
@@ -621,18 +640,4 @@ header h1 {
     opacity: 0;
     transform: translateX(-50%) translateY(10px);
     pointer-events: none;
-}
-
-/* Scrollbar inside bucket */
-.bucket-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.bucket-body::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.bucket-body::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.3);
-    border-radius: 3px;
 }

@@ -11,7 +11,7 @@ function init() {
 
     loadFromStorage();
     renderCalendar();
-    renderBucket();
+    renderKanban();
     renderUnavailList();
     bindEvents();
 }
@@ -34,6 +34,22 @@ function bindEvents() {
 
     document.getElementById('toggle-unavail').addEventListener('click', toggleUnavailForm);
     document.getElementById('unavail-form').addEventListener('submit', addUnavailability);
+
+    // Kanban column drop zones
+    document.querySelectorAll('.kanban-items').forEach(col => {
+        col.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            col.classList.add('drop-hover');
+        });
+        col.addEventListener('dragleave', () => {
+            col.classList.remove('drop-hover');
+        });
+        col.addEventListener('drop', (e) => {
+            e.preventDefault();
+            col.classList.remove('drop-hover');
+            handleColumnDrop(e, col.dataset.column);
+        });
+    });
 }
 
 function toggleActivityForm() {
@@ -102,7 +118,7 @@ function renderCalendar() {
             cell.addEventListener('drop', (e) => {
                 e.preventDefault();
                 cell.classList.remove('drop-hover');
-                handleDrop(e, key);
+                handleCalendarDrop(e, key);
             });
         }
 
@@ -115,7 +131,7 @@ function renderCalendar() {
 }
 
 function hasActivity(dateKey) {
-    return activities.some(a => a.scheduledDate === dateKey);
+    return activities.some(a => a.status === 'locked' && a.scheduledDate === dateKey);
 }
 
 function addActivity(e) {
@@ -129,42 +145,46 @@ function addActivity(e) {
         id: Date.now(),
         name,
         priority,
+        status: 'sloshing',
         scheduledDate: null
     });
 
     document.getElementById('activity-form').reset();
     document.getElementById('activity-form').classList.add('hidden');
-    renderBucket();
+    renderKanban();
     saveToStorage();
     showToast('Tossed in the bucket!');
 }
 
-function renderBucket() {
-    const container = document.getElementById('bucket-list');
-    container.innerHTML = '';
+function renderKanban() {
+    const columns = {
+        sloshing: document.getElementById('col-sloshing'),
+        locked: document.getElementById('col-locked'),
+        kicked: document.getElementById('col-kicked')
+    };
 
-    if (activities.length === 0) {
-        container.innerHTML = '<p class="bucket-empty">Bucket\'s empty!<br>Hit + to toss something in.</p>';
-        return;
-    }
+    const emptyMessages = {
+        sloshing: 'Nothing sloshing yet...<br>Hit + to dream something up',
+        locked: 'Drag items here or onto<br>a calendar day to lock them in',
+        kicked: 'Drag here the ideas that<br>didn\'t make the cut'
+    };
 
-    const unscheduled = activities.filter(a => !a.scheduledDate);
-    const scheduled = activities.filter(a => a.scheduledDate);
+    Object.keys(columns).forEach(status => {
+        const col = columns[status];
+        col.innerHTML = '';
+        const items = activities.filter(a => a.status === status);
 
-    unscheduled.forEach(a => container.appendChild(createBucketItem(a)));
-
-    if (scheduled.length > 0 && unscheduled.length > 0) {
-        const divider = document.createElement('div');
-        divider.style.cssText = 'border-top:1px dashed rgba(255,255,255,0.3);margin:0.3rem 0;';
-        container.appendChild(divider);
-    }
-
-    scheduled.forEach(a => container.appendChild(createBucketItem(a)));
+        if (items.length === 0) {
+            col.innerHTML = `<p class="kanban-empty">${emptyMessages[status]}</p>`;
+        } else {
+            items.forEach(a => col.appendChild(createKanbanItem(a)));
+        }
+    });
 }
 
-function createBucketItem(activity) {
+function createKanbanItem(activity) {
     const div = document.createElement('div');
-    div.className = `bucket-item ${activity.priority}${activity.scheduledDate ? ' scheduled-item' : ''}`;
+    div.className = `kanban-item ${activity.priority}`;
     div.draggable = true;
     div.dataset.id = activity.id;
 
@@ -188,13 +208,49 @@ function createBucketItem(activity) {
 
     div.addEventListener('contextmenu', (e) => {
         e.preventDefault();
-        showContextMenu(e.pageX, e.pageY, activity.id);
+        showContextMenu(e.pageX, e.pageY, activity);
     });
 
     return div;
 }
 
-function showContextMenu(x, y, activityId) {
+function handleCalendarDrop(e, dateKey) {
+    const id = Number(e.dataTransfer.getData('text/plain'));
+    const activity = activities.find(a => a.id === id);
+    if (!activity) return;
+    if (isUnavailable(dateKey)) return;
+
+    activity.status = 'locked';
+    activity.scheduledDate = dateKey;
+    renderKanban();
+    renderCalendar();
+    saveToStorage();
+    showToast(`${activity.name} locked in!`);
+}
+
+function handleColumnDrop(e, column) {
+    const id = Number(e.dataTransfer.getData('text/plain'));
+    const activity = activities.find(a => a.id === id);
+    if (!activity) return;
+
+    activity.status = column;
+    if (column !== 'locked') {
+        activity.scheduledDate = null;
+    }
+
+    renderKanban();
+    renderCalendar();
+    saveToStorage();
+
+    const messages = {
+        sloshing: `${activity.name} back in the mix`,
+        locked: `${activity.name} locked in!`,
+        kicked: `${activity.name} kicked the bucket`
+    };
+    showToast(messages[column]);
+}
+
+function showContextMenu(x, y, activity) {
     removeContextMenu();
 
     const menu = document.createElement('div');
@@ -202,33 +258,49 @@ function showContextMenu(x, y, activityId) {
     menu.style.left = x + 'px';
     menu.style.top = y + 'px';
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Remove from bucket';
-    deleteBtn.addEventListener('click', () => {
-        activities = activities.filter(a => a.id !== activityId);
-        renderBucket();
-        renderCalendar();
-        saveToStorage();
-        showToast('Removed from the bucket');
-        removeContextMenu();
-    });
-
-    const unscheduleBtn = document.createElement('button');
-    const activity = activities.find(a => a.id === activityId);
-    if (activity && activity.scheduledDate) {
-        unscheduleBtn.textContent = 'Unschedule';
-        unscheduleBtn.addEventListener('click', () => {
+    if (activity.status !== 'sloshing') {
+        const sloshBtn = document.createElement('button');
+        sloshBtn.textContent = '🌊 Back to sloshing';
+        sloshBtn.addEventListener('click', () => {
+            activity.status = 'sloshing';
             activity.scheduledDate = null;
-            renderBucket();
+            renderKanban();
             renderCalendar();
             saveToStorage();
-            showToast('Back in the bucket');
             removeContextMenu();
+            showToast(`${activity.name} back in the mix`);
         });
-        menu.appendChild(unscheduleBtn);
+        menu.appendChild(sloshBtn);
     }
 
+    if (activity.status !== 'kicked') {
+        const kickBtn = document.createElement('button');
+        kickBtn.textContent = '⚰️ Kick it';
+        kickBtn.addEventListener('click', () => {
+            activity.status = 'kicked';
+            activity.scheduledDate = null;
+            renderKanban();
+            renderCalendar();
+            saveToStorage();
+            removeContextMenu();
+            showToast(`${activity.name} kicked the bucket`);
+        });
+        menu.appendChild(kickBtn);
+    }
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'danger';
+    deleteBtn.textContent = '🗑️ Delete forever';
+    deleteBtn.addEventListener('click', () => {
+        activities = activities.filter(a => a.id !== activity.id);
+        renderKanban();
+        renderCalendar();
+        saveToStorage();
+        removeContextMenu();
+        showToast('Gone for good');
+    });
     menu.appendChild(deleteBtn);
+
     document.body.appendChild(menu);
 
     setTimeout(() => {
@@ -241,20 +313,6 @@ function removeContextMenu() {
     if (existing) existing.remove();
 }
 
-function handleDrop(e, dateKey) {
-    const id = Number(e.dataTransfer.getData('text/plain'));
-    const activity = activities.find(a => a.id === id);
-    if (!activity) return;
-
-    if (isUnavailable(dateKey)) return;
-
-    activity.scheduledDate = dateKey;
-    renderBucket();
-    renderCalendar();
-    saveToStorage();
-    showToast(`${activity.name} scheduled!`);
-}
-
 function addUnavailability(e) {
     e.preventDefault();
     const person = document.getElementById('unavail-person').value.trim();
@@ -265,9 +323,9 @@ function addUnavailability(e) {
 
     unavailabilities.push({ id: Date.now(), person, start, end });
 
-    // unschedule any activities on now-blocked days
     activities.forEach(a => {
         if (a.scheduledDate && isUnavailable(a.scheduledDate)) {
+            a.status = 'sloshing';
             a.scheduledDate = null;
         }
     });
@@ -276,7 +334,7 @@ function addUnavailability(e) {
     document.getElementById('unavail-form').classList.add('hidden');
     renderUnavailList();
     renderCalendar();
-    renderBucket();
+    renderKanban();
     saveToStorage();
     showToast(`${person} blocked off`);
 }
