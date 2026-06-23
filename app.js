@@ -205,14 +205,16 @@ function hasActivity(dateKey) {
 function addActivity(e) {
     e.preventDefault();
     const name = document.getElementById('activity-name').value.trim();
-    const priority = document.getElementById('activity-priority').value;
+    const location = document.getElementById('activity-location').value.trim();
+    const link = document.getElementById('activity-link').value.trim();
 
     if (!name) return;
 
     activities.push({
         id: Date.now(),
         name,
-        priority,
+        location: location || null,
+        link: link || null,
         status: 'thoughts',
         scheduledDate: null
     });
@@ -255,18 +257,26 @@ function createKanbanItem(activity) {
     wrapper.className = 'kanban-item-wrapper';
 
     const div = document.createElement('div');
-    div.className = `kanban-item ${activity.priority}`;
+    div.className = 'kanban-item';
     div.draggable = true;
     div.dataset.id = activity.id;
 
-    let dateLabel = '';
+    let details = '';
     if (activity.scheduledDate) {
-        dateLabel = `<span class="item-date">${formatDate(activity.scheduledDate)}</span>`;
+        details += `<span class="item-date">${formatDate(activity.scheduledDate)}</span>`;
+    }
+    if (activity.location) {
+        details += `<span class="item-location">📍 ${escapeHtml(activity.location)}</span>`;
+    }
+    if (activity.link) {
+        details += `<a class="item-link" href="${escapeHtml(activity.link)}" target="_blank" rel="noopener">🔗 Link</a>`;
     }
 
     div.innerHTML = `
-        <span class="item-name">${escapeHtml(activity.name)}</span>
-        ${dateLabel}
+        <div class="item-content">
+            <span class="item-name">${escapeHtml(activity.name)}</span>
+            ${details ? `<div class="item-details">${details}</div>` : ''}
+        </div>
     `;
 
     const actions = document.createElement('div');

@@ -573,7 +573,7 @@ header h1 {
     gap: 0.5rem;
     cursor: grab;
     transition: transform 0.2s ease, box-shadow 0.15s;
-    border-left: 4px solid var(--warm);
+    border-left: 4px solid var(--teal);
     user-select: none;
     font-size: 0.85rem;
     position: relative;
@@ -591,20 +591,39 @@ header h1 {
     }
 }
 
-.kanban-item.hot { border-left-color: var(--hot); }
-.kanban-item.warm { border-left-color: var(--warm); }
-.kanban-item.chill { border-left-color: var(--chill); }
+.kanban-item .item-content {
+    flex: 1;
+    min-width: 0;
+}
 
 .kanban-item .item-name {
-    flex: 1;
     font-weight: 600;
     color: var(--text);
 }
 
-.kanban-item .item-date {
+.kanban-item .item-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.6rem;
+    margin-top: 0.3rem;
+}
+
+.kanban-item .item-date,
+.kanban-item .item-location {
     font-size: 0.7rem;
     color: var(--text-muted);
     white-space: nowrap;
+}
+
+.kanban-item .item-link {
+    font-size: 0.7rem;
+    color: var(--teal);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.kanban-item .item-link:hover {
+    text-decoration: underline;
 }
 
 .kanban-item.dragging {
