@@ -3,41 +3,46 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
 let currentYear, currentMonth;
 let activities = [];
 let unavailabilities = [];
-let db;
-let roomRef;
+let roomRef = null;
 
 function init() {
     const today = new Date();
     currentYear = today.getFullYear();
     currentMonth = today.getMonth();
 
+    bindEvents();
     renderCalendar();
     renderKanban();
-
-    db = firebase.database();
-    roomRef = db.ref('bucket-list');
-    listenForChanges();
-    bindEvents();
+    renderUnavailList();
+    initFirebase();
 }
 
-function listenForChanges() {
-    roomRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            activities = data.activities || [];
-            unavailabilities = data.unavailabilities || [];
-        } else {
-            activities = [];
-            unavailabilities = [];
-        }
-        renderCalendar();
-        renderKanban();
-        renderUnavailList();
-    });
+function initFirebase() {
+    try {
+        const db = firebase.database();
+        roomRef = db.ref('bucket-list');
+        roomRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                activities = data.activities || [];
+                unavailabilities = data.unavailabilities || [];
+            } else {
+                activities = [];
+                unavailabilities = [];
+            }
+            renderCalendar();
+            renderKanban();
+            renderUnavailList();
+        });
+    } catch (e) {
+        console.error('Firebase init failed:', e);
+    }
 }
 
 function saveToFirebase() {
-    roomRef.set({ activities, unavailabilities });
+    if (roomRef) {
+        roomRef.set({ activities, unavailabilities });
+    }
 }
 
 function bindEvents() {
@@ -332,7 +337,6 @@ function createKanbanItem(activity) {
         }
     });
 
-    // Tap elsewhere to close
     document.addEventListener('touchstart', (e) => {
         if (!wrapper.contains(e.target) && wrapper.classList.contains('swiped')) {
             div.style.transition = 'transform 0.2s ease';
