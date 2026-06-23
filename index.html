@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bucket List Calendar</title>
+    <title>The Bucket List</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app">
         <header>
-            <h1>Bucket List Calendar</h1>
-            <p class="subtitle">Plan adventures together</p>
+            <h1><span class="bucket-icon">🪣</span> The Bucket List</h1>
+            <p class="subtitle">Drag your dreams onto the calendar</p>
         </header>
 
         <div class="toolbar">
@@ -40,26 +40,38 @@
                     <span class="legend-item"><span class="dot available"></span> Available</span>
                     <span class="legend-item"><span class="dot maybe"></span> Maybe</span>
                     <span class="legend-item"><span class="dot unavailable"></span> Unavailable</span>
+                    <span class="legend-item"><span class="dot scheduled"></span> Scheduled</span>
                 </div>
             </section>
 
-            <section class="activities-section">
-                <h2>Bucket List Activities</h2>
-                <form id="activity-form" class="activity-form">
-                    <input type="text" id="activity-name" placeholder="Activity name" required>
-                    <div class="date-range">
-                        <input type="date" id="activity-start" required>
-                        <span>to</span>
-                        <input type="date" id="activity-end" required>
-                    </div>
+            <section class="bucket-section">
+                <div class="bucket-header">
+                    <h2>The Bucket</h2>
+                    <button id="add-btn" class="add-btn" title="Toss one in">+</button>
+                </div>
+
+                <form id="activity-form" class="activity-form hidden">
+                    <input type="text" id="activity-name" placeholder="What's on the list?" required>
                     <select id="activity-priority">
-                        <option value="high">High Priority</option>
-                        <option value="medium" selected>Medium Priority</option>
-                        <option value="low">Low Priority</option>
+                        <option value="hot">🔥 Hot priority</option>
+                        <option value="warm" selected>☀️ Warm priority</option>
+                        <option value="chill">🧊 Chill priority</option>
                     </select>
-                    <button type="submit" class="btn btn-primary">Add Activity</button>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Drop it in!</button>
+                        <button type="button" id="cancel-add" class="btn btn-secondary">Nah</button>
+                    </div>
                 </form>
-                <ul id="activity-list" class="activity-list"></ul>
+
+                <div class="bucket-container">
+                    <div class="bucket-rim"></div>
+                    <div class="bucket-body" id="bucket-list">
+                        <p class="bucket-empty">Bucket's empty!<br>Hit + to toss something in.</p>
+                    </div>
+                    <div class="bucket-base"></div>
+                </div>
+
+                <p class="bucket-hint">Drag items onto the calendar to schedule them</p>
             </section>
         </div>
     </div>

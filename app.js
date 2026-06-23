@@ -12,7 +12,7 @@ function init() {
 
     loadFromURL() || loadFromStorage();
     renderCalendar();
-    renderActivities();
+    renderBucket();
     bindEvents();
 }
 
@@ -27,10 +27,22 @@ function bindEvents() {
         if (currentMonth > 11) { currentMonth = 0; currentYear++; }
         renderCalendar();
     });
+
+    document.getElementById('add-btn').addEventListener('click', toggleForm);
+    document.getElementById('cancel-add').addEventListener('click', toggleForm);
     document.getElementById('activity-form').addEventListener('submit', addActivity);
+
     document.getElementById('share-btn').addEventListener('click', shareLink);
     document.getElementById('clear-btn').addEventListener('click', clearAll);
     document.getElementById('export-btn').addEventListener('click', exportData);
+}
+
+function toggleForm() {
+    const form = document.getElementById('activity-form');
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) {
+        document.getElementById('activity-name').focus();
+    }
 }
 
 function renderCalendar() {
@@ -60,17 +72,29 @@ function renderCalendar() {
             cell.classList.add(availability[key]);
         }
 
+        if (hasActivity(key)) {
+            cell.classList.add('has-activity');
+        }
+
         if (today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === day) {
             cell.classList.add('today');
         }
 
-        if (hasActivity(key)) {
-            const dot = document.createElement('span');
-            dot.className = 'activity-dot';
-            cell.appendChild(dot);
-        }
-
         cell.addEventListener('click', () => toggleAvailability(key, cell));
+
+        cell.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            cell.classList.add('drop-hover');
+        });
+        cell.addEventListener('dragleave', () => {
+            cell.classList.remove('drop-hover');
+        });
+        cell.addEventListener('drop', (e) => {
+            e.preventDefault();
+            cell.classList.remove('drop-hover');
+            handleDrop(e, key);
+        });
+
         container.appendChild(cell);
     }
 }
@@ -93,77 +117,99 @@ function toggleAvailability(key, cell) {
 }
 
 function hasActivity(dateKey) {
-    const d = new Date(dateKey + 'T00:00:00');
-    return activities.some(a => {
-        const start = new Date(a.start + 'T00:00:00');
-        const end = new Date(a.end + 'T00:00:00');
-        return d >= start && d <= end;
-    });
+    return activities.some(a => a.scheduledDate === dateKey);
 }
 
 function addActivity(e) {
     e.preventDefault();
     const name = document.getElementById('activity-name').value.trim();
-    const start = document.getElementById('activity-start').value;
-    const end = document.getElementById('activity-end').value;
     const priority = document.getElementById('activity-priority').value;
 
-    if (!name || !start || !end) return;
+    if (!name) return;
 
-    activities.push({ id: Date.now(), name, start, end, priority, completed: false });
-    activities.sort((a, b) => new Date(a.start) - new Date(b.start));
+    activities.push({
+        id: Date.now(),
+        name,
+        priority,
+        scheduledDate: null
+    });
 
     document.getElementById('activity-form').reset();
-    renderActivities();
-    renderCalendar();
+    document.getElementById('activity-form').classList.add('hidden');
+    renderBucket();
     saveToStorage();
+    showToast('Tossed in the bucket!');
 }
 
-function renderActivities() {
-    const list = document.getElementById('activity-list');
-    list.innerHTML = '';
+function renderBucket() {
+    const container = document.getElementById('bucket-list');
+    container.innerHTML = '';
 
     if (activities.length === 0) {
-        list.innerHTML = '<li style="color:var(--text-muted);text-align:center;padding:2rem;">No activities yet. Add one above!</li>';
+        container.innerHTML = '<p class="bucket-empty">Bucket\'s empty!<br>Hit + to toss something in.</p>';
         return;
     }
 
-    activities.forEach(a => {
-        const li = document.createElement('li');
-        li.className = `activity-item ${a.priority}${a.completed ? ' completed' : ''}`;
-        li.innerHTML = `
-            <div class="activity-info">
-                <div class="activity-name">${escapeHtml(a.name)}</div>
-                <div class="activity-dates">${formatDate(a.start)} &ndash; ${formatDate(a.end)}</div>
-            </div>
-            <div class="activity-actions">
-                <button title="Toggle complete" data-action="toggle" data-id="${a.id}">${a.completed ? '&#x21A9;' : '&#x2713;'}</button>
-                <button title="Delete" data-action="delete" data-id="${a.id}">&times;</button>
-            </div>
-        `;
-        list.appendChild(li);
-    });
+    const unscheduled = activities.filter(a => !a.scheduledDate);
+    const scheduled = activities.filter(a => a.scheduledDate);
 
-    list.addEventListener('click', handleActivityAction);
-}
+    unscheduled.forEach(a => container.appendChild(createBucketItem(a)));
 
-function handleActivityAction(e) {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-
-    const id = Number(btn.dataset.id);
-    const action = btn.dataset.action;
-
-    if (action === 'toggle') {
-        const activity = activities.find(a => a.id === id);
-        if (activity) activity.completed = !activity.completed;
-    } else if (action === 'delete') {
-        activities = activities.filter(a => a.id !== id);
+    if (scheduled.length > 0 && unscheduled.length > 0) {
+        const divider = document.createElement('div');
+        divider.style.cssText = 'border-top:1px dashed rgba(255,255,255,0.3);margin:0.3rem 0;';
+        container.appendChild(divider);
     }
 
-    renderActivities();
+    scheduled.forEach(a => container.appendChild(createBucketItem(a)));
+}
+
+function createBucketItem(activity) {
+    const div = document.createElement('div');
+    div.className = `bucket-item ${activity.priority}${activity.scheduledDate ? ' scheduled-item' : ''}`;
+    div.draggable = true;
+    div.dataset.id = activity.id;
+
+    let dateLabel = '';
+    if (activity.scheduledDate) {
+        dateLabel = `<span class="item-date">${formatDate(activity.scheduledDate)}</span>`;
+    }
+
+    div.innerHTML = `
+        <span class="item-name">${escapeHtml(activity.name)}</span>
+        ${dateLabel}
+        <button class="item-delete" data-id="${activity.id}" title="Remove">&times;</button>
+    `;
+
+    div.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', activity.id.toString());
+        div.classList.add('dragging');
+    });
+    div.addEventListener('dragend', () => {
+        div.classList.remove('dragging');
+    });
+
+    div.querySelector('.item-delete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        activities = activities.filter(a => a.id !== activity.id);
+        renderBucket();
+        renderCalendar();
+        saveToStorage();
+    });
+
+    return div;
+}
+
+function handleDrop(e, dateKey) {
+    const id = Number(e.dataTransfer.getData('text/plain'));
+    const activity = activities.find(a => a.id === id);
+    if (!activity) return;
+
+    activity.scheduledDate = dateKey;
+    renderBucket();
     renderCalendar();
     saveToStorage();
+    showToast(`${activity.name} scheduled!`);
 }
 
 function shareLink() {
@@ -179,17 +225,17 @@ function shareLink() {
 }
 
 function clearAll() {
-    if (!confirm('Clear all availability and activities?')) return;
+    if (!confirm('Empty the whole bucket and clear the calendar?')) return;
     availability = {};
     activities = [];
     renderCalendar();
-    renderActivities();
+    renderBucket();
     saveToStorage();
-    showToast('All data cleared');
+    showToast('Fresh start!');
 }
 
 function exportData() {
-    let text = 'BUCKET LIST CALENDAR\n====================\n\n';
+    let text = 'THE BUCKET LIST\n===============\n\n';
 
     text += 'AVAILABILITY:\n';
     const sortedDates = Object.keys(availability).sort();
@@ -197,17 +243,28 @@ function exportData() {
         text += `  ${formatDate(d)}: ${availability[d]}\n`;
     });
 
-    text += '\nACTIVITIES:\n';
-    activities.forEach(a => {
-        const status = a.completed ? '[DONE]' : '[    ]';
-        text += `  ${status} ${a.name} (${formatDate(a.start)} - ${formatDate(a.end)}) [${a.priority}]\n`;
-    });
+    text += '\nBUCKET LIST ITEMS:\n';
+    const unscheduled = activities.filter(a => !a.scheduledDate);
+    const scheduled = activities.filter(a => a.scheduledDate);
+
+    if (unscheduled.length) {
+        text += '  Unscheduled:\n';
+        unscheduled.forEach(a => {
+            text += `    - ${a.name} [${a.priority}]\n`;
+        });
+    }
+    if (scheduled.length) {
+        text += '  Scheduled:\n';
+        scheduled.forEach(a => {
+            text += `    - ${a.name} => ${formatDate(a.scheduledDate)} [${a.priority}]\n`;
+        });
+    }
 
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'bucket-list-calendar.txt';
+    link.download = 'bucket-list.txt';
     link.click();
     URL.revokeObjectURL(url);
     showToast('Exported!');
@@ -249,7 +306,7 @@ function dateKey(year, month, day) {
 
 function formatDate(str) {
     const [y, m, d] = str.split('-');
-    return `${MONTH_NAMES[parseInt(m) - 1].slice(0, 3)} ${parseInt(d)}, ${y}`;
+    return `${MONTH_NAMES[parseInt(m) - 1].slice(0, 3)} ${parseInt(d)}`;
 }
 
 function escapeHtml(str) {
