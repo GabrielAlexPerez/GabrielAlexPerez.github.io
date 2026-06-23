@@ -15,7 +15,7 @@
     --text-muted: #7a7d8b;
     --available: #06d6a0;
     --maybe: #ffd166;
-    --unavailable: #ef476f;
+    --unavailable: #d4d4d4;
     --scheduled: #118ab2;
     --hot: #ef476f;
     --warm: #ffd166;
@@ -66,14 +66,6 @@ header h1 {
     font-style: italic;
 }
 
-.toolbar {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-}
-
 .btn {
     padding: 0.6rem 1.2rem;
     border: none;
@@ -110,6 +102,16 @@ header h1 {
 
 .btn-secondary:hover {
     border-color: var(--accent);
+}
+
+.btn-block {
+    width: 100%;
+    background: var(--accent);
+    color: white;
+}
+
+.btn-block:hover {
+    background: var(--accent-hover);
 }
 
 .main-layout {
@@ -218,26 +220,22 @@ header h1 {
     outline-offset: -2px;
 }
 
-.day-cell.available {
-    background: var(--available);
-    color: white;
-    font-weight: 700;
-}
-
-.day-cell.maybe {
-    background: var(--maybe);
-    color: var(--text);
-    font-weight: 700;
-}
-
 .day-cell.unavailable {
     background: var(--unavailable);
-    color: white;
-    font-weight: 700;
+    color: #999;
+    cursor: not-allowed;
+    font-weight: 400;
+}
+
+.day-cell.unavailable:hover {
+    transform: none;
+    box-shadow: none;
 }
 
 .day-cell.has-activity {
-    box-shadow: inset 0 -3px 0 var(--scheduled);
+    background: var(--scheduled);
+    color: white;
+    font-weight: 700;
 }
 
 .day-cell.drop-hover {
@@ -247,32 +245,132 @@ header h1 {
     background: rgba(0, 180, 216, 0.2);
 }
 
-.legend {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
+/* Unavailability section */
+.unavailability-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--surface-2);
 }
 
-.legend-item {
+.unavail-header {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
 }
 
-.dot {
-    width: 10px;
-    height: 10px;
+.unavail-header h3 {
+    font-size: 1rem;
+    color: var(--text);
+}
+
+.toggle-btn {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
+    border: none;
+    background: var(--unavailable);
+    color: var(--text);
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s;
 }
 
-.dot.available { background: var(--available); }
-.dot.maybe { background: var(--maybe); }
-.dot.unavailable { background: var(--unavailable); }
-.dot.scheduled { background: var(--scheduled); }
+.toggle-btn:hover {
+    transform: scale(1.1);
+}
+
+.unavail-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    animation: slideDown 0.2s ease-out;
+}
+
+.unavail-form.hidden {
+    display: none;
+}
+
+.unavail-form input {
+    padding: 0.6rem 0.8rem;
+    border: 2px solid var(--surface-2);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.9rem;
+    transition: border-color 0.15s;
+}
+
+.unavail-form input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.date-range {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.date-range input {
+    flex: 1;
+}
+
+.date-range span {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.unavail-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.unavail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--bg);
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    border-left: 3px solid var(--unavailable);
+}
+
+.unavail-item .unavail-info {
+    flex: 1;
+}
+
+.unavail-item .unavail-person {
+    font-weight: 600;
+}
+
+.unavail-item .unavail-dates {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.unavail-item .unavail-delete {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+}
+
+.unavail-item .unavail-delete:hover {
+    color: var(--hot);
+    background: rgba(239, 71, 111, 0.1);
+}
 
 /* Bucket section */
 .bucket-section {
@@ -417,6 +515,7 @@ header h1 {
     font-size: 0.8rem;
     color: var(--text-muted);
     font-style: italic;
+    line-height: 1.5;
 }
 
 /* Bucket items (draggable) */
@@ -461,22 +560,6 @@ header h1 {
 .bucket-item .item-date {
     font-size: 0.7rem;
     color: var(--text-muted);
-}
-
-.bucket-item .item-delete {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 1.1rem;
-    padding: 0.1rem 0.3rem;
-    border-radius: 4px;
-    line-height: 1;
-}
-
-.bucket-item .item-delete:hover {
-    color: var(--unavailable);
-    background: rgba(239, 71, 111, 0.1);
 }
 
 .bucket-item.dragging {

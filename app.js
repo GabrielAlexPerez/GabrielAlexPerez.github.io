@@ -1,18 +1,18 @@
-const STATES = ['', 'available', 'maybe', 'unavailable'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 let currentYear, currentMonth;
-let availability = {};
 let activities = [];
+let unavailabilities = [];
 
 function init() {
     const today = new Date();
     currentYear = today.getFullYear();
     currentMonth = today.getMonth();
 
-    loadFromURL() || loadFromStorage();
+    loadFromStorage();
     renderCalendar();
     renderBucket();
+    renderUnavailList();
     bindEvents();
 }
 
@@ -28,21 +28,37 @@ function bindEvents() {
         renderCalendar();
     });
 
-    document.getElementById('add-btn').addEventListener('click', toggleForm);
-    document.getElementById('cancel-add').addEventListener('click', toggleForm);
+    document.getElementById('add-btn').addEventListener('click', toggleActivityForm);
+    document.getElementById('cancel-add').addEventListener('click', toggleActivityForm);
     document.getElementById('activity-form').addEventListener('submit', addActivity);
 
-    document.getElementById('share-btn').addEventListener('click', shareLink);
-    document.getElementById('clear-btn').addEventListener('click', clearAll);
-    document.getElementById('export-btn').addEventListener('click', exportData);
+    document.getElementById('toggle-unavail').addEventListener('click', toggleUnavailForm);
+    document.getElementById('unavail-form').addEventListener('submit', addUnavailability);
 }
 
-function toggleForm() {
+function toggleActivityForm() {
     const form = document.getElementById('activity-form');
     form.classList.toggle('hidden');
     if (!form.classList.contains('hidden')) {
         document.getElementById('activity-name').focus();
     }
+}
+
+function toggleUnavailForm() {
+    const form = document.getElementById('unavail-form');
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) {
+        document.getElementById('unavail-person').focus();
+    }
+}
+
+function isUnavailable(key) {
+    const d = new Date(key + 'T00:00:00');
+    return unavailabilities.some(u => {
+        const start = new Date(u.start + 'T00:00:00');
+        const end = new Date(u.end + 'T00:00:00');
+        return d >= start && d <= end;
+    });
 }
 
 function renderCalendar() {
@@ -67,53 +83,35 @@ function renderCalendar() {
         cell.textContent = day;
 
         const key = dateKey(currentYear, currentMonth, day);
+        const dayUnavailable = isUnavailable(key);
 
-        if (availability[key]) {
-            cell.classList.add(availability[key]);
-        }
+        if (dayUnavailable) {
+            cell.classList.add('unavailable');
+        } else {
+            if (hasActivity(key)) {
+                cell.classList.add('has-activity');
+            }
 
-        if (hasActivity(key)) {
-            cell.classList.add('has-activity');
+            cell.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                cell.classList.add('drop-hover');
+            });
+            cell.addEventListener('dragleave', () => {
+                cell.classList.remove('drop-hover');
+            });
+            cell.addEventListener('drop', (e) => {
+                e.preventDefault();
+                cell.classList.remove('drop-hover');
+                handleDrop(e, key);
+            });
         }
 
         if (today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === day) {
             cell.classList.add('today');
         }
 
-        cell.addEventListener('click', () => toggleAvailability(key, cell));
-
-        cell.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            cell.classList.add('drop-hover');
-        });
-        cell.addEventListener('dragleave', () => {
-            cell.classList.remove('drop-hover');
-        });
-        cell.addEventListener('drop', (e) => {
-            e.preventDefault();
-            cell.classList.remove('drop-hover');
-            handleDrop(e, key);
-        });
-
         container.appendChild(cell);
     }
-}
-
-function toggleAvailability(key, cell) {
-    const current = availability[key] || '';
-    const idx = STATES.indexOf(current);
-    const next = STATES[(idx + 1) % STATES.length];
-
-    if (next) {
-        availability[key] = next;
-    } else {
-        delete availability[key];
-    }
-
-    cell.classList.remove(...STATES.filter(Boolean));
-    if (next) cell.classList.add(next);
-
-    saveToStorage();
 }
 
 function hasActivity(dateKey) {
@@ -178,7 +176,6 @@ function createBucketItem(activity) {
     div.innerHTML = `
         <span class="item-name">${escapeHtml(activity.name)}</span>
         ${dateLabel}
-        <button class="item-delete" data-id="${activity.id}" title="Remove">&times;</button>
     `;
 
     div.addEventListener('dragstart', (e) => {
@@ -189,12 +186,12 @@ function createBucketItem(activity) {
         div.classList.remove('dragging');
     });
 
-    div.querySelector('.item-delete').addEventListener('click', (e) => {
-        e.stopPropagation();
+    div.addEventListener('click', () => {
         activities = activities.filter(a => a.id !== activity.id);
         renderBucket();
         renderCalendar();
         saveToStorage();
+        showToast('Removed from the bucket');
     });
 
     return div;
@@ -205,6 +202,8 @@ function handleDrop(e, dateKey) {
     const activity = activities.find(a => a.id === id);
     if (!activity) return;
 
+    if (isUnavailable(dateKey)) return;
+
     activity.scheduledDate = dateKey;
     renderBucket();
     renderCalendar();
@@ -212,90 +211,66 @@ function handleDrop(e, dateKey) {
     showToast(`${activity.name} scheduled!`);
 }
 
-function shareLink() {
-    const data = { availability, activities };
-    const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
-    const url = window.location.origin + window.location.pathname + '?data=' + encoded;
+function addUnavailability(e) {
+    e.preventDefault();
+    const person = document.getElementById('unavail-person').value.trim();
+    const start = document.getElementById('unavail-start').value;
+    const end = document.getElementById('unavail-end').value;
 
-    navigator.clipboard.writeText(url).then(() => {
-        showToast('Share link copied to clipboard!');
-    }).catch(() => {
-        prompt('Copy this link:', url);
+    if (!person || !start || !end) return;
+
+    unavailabilities.push({ id: Date.now(), person, start, end });
+
+    // unschedule any activities on now-blocked days
+    activities.forEach(a => {
+        if (a.scheduledDate && isUnavailable(a.scheduledDate)) {
+            a.scheduledDate = null;
+        }
     });
-}
 
-function clearAll() {
-    if (!confirm('Empty the whole bucket and clear the calendar?')) return;
-    availability = {};
-    activities = [];
+    document.getElementById('unavail-form').reset();
+    document.getElementById('unavail-form').classList.add('hidden');
+    renderUnavailList();
     renderCalendar();
     renderBucket();
     saveToStorage();
-    showToast('Fresh start!');
+    showToast(`${person} blocked off`);
 }
 
-function exportData() {
-    let text = 'THE BUCKET LIST\n===============\n\n';
+function renderUnavailList() {
+    const list = document.getElementById('unavail-list');
+    list.innerHTML = '';
 
-    text += 'AVAILABILITY:\n';
-    const sortedDates = Object.keys(availability).sort();
-    sortedDates.forEach(d => {
-        text += `  ${formatDate(d)}: ${availability[d]}\n`;
+    unavailabilities.forEach(u => {
+        const li = document.createElement('li');
+        li.className = 'unavail-item';
+        li.innerHTML = `
+            <div class="unavail-info">
+                <span class="unavail-person">${escapeHtml(u.person)}</span>
+                <span class="unavail-dates">${formatDate(u.start)} &ndash; ${formatDate(u.end)}</span>
+            </div>
+            <button class="unavail-delete" title="Remove">&times;</button>
+        `;
+        li.querySelector('.unavail-delete').addEventListener('click', () => {
+            unavailabilities = unavailabilities.filter(x => x.id !== u.id);
+            renderUnavailList();
+            renderCalendar();
+            saveToStorage();
+        });
+        list.appendChild(li);
     });
-
-    text += '\nBUCKET LIST ITEMS:\n';
-    const unscheduled = activities.filter(a => !a.scheduledDate);
-    const scheduled = activities.filter(a => a.scheduledDate);
-
-    if (unscheduled.length) {
-        text += '  Unscheduled:\n';
-        unscheduled.forEach(a => {
-            text += `    - ${a.name} [${a.priority}]\n`;
-        });
-    }
-    if (scheduled.length) {
-        text += '  Scheduled:\n';
-        scheduled.forEach(a => {
-            text += `    - ${a.name} => ${formatDate(a.scheduledDate)} [${a.priority}]\n`;
-        });
-    }
-
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'bucket-list.txt';
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast('Exported!');
-}
-
-function loadFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const data = params.get('data');
-    if (!data) return false;
-
-    try {
-        const parsed = JSON.parse(decodeURIComponent(atob(data)));
-        availability = parsed.availability || {};
-        activities = parsed.activities || [];
-        window.history.replaceState({}, '', window.location.pathname);
-        return true;
-    } catch {
-        return false;
-    }
 }
 
 function saveToStorage() {
-    localStorage.setItem('bucketListCalendar', JSON.stringify({ availability, activities }));
+    localStorage.setItem('bucketListCalendar', JSON.stringify({ activities, unavailabilities }));
 }
 
 function loadFromStorage() {
     try {
         const saved = JSON.parse(localStorage.getItem('bucketListCalendar'));
         if (saved) {
-            availability = saved.availability || {};
             activities = saved.activities || [];
+            unavailabilities = saved.unavailabilities || [];
         }
     } catch {}
 }

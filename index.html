@@ -13,12 +13,6 @@
             <p class="subtitle">Drag your dreams onto the calendar</p>
         </header>
 
-        <div class="toolbar">
-            <button id="share-btn" class="btn btn-primary">Share Link</button>
-            <button id="clear-btn" class="btn btn-secondary">Clear All</button>
-            <button id="export-btn" class="btn btn-secondary">Export</button>
-        </div>
-
         <div class="main-layout">
             <section class="calendar-section">
                 <div class="calendar-nav">
@@ -36,11 +30,22 @@
                     <div class="day-header">Sat</div>
                     <div id="calendar-days" class="calendar-days"></div>
                 </div>
-                <div class="legend">
-                    <span class="legend-item"><span class="dot available"></span> Available</span>
-                    <span class="legend-item"><span class="dot maybe"></span> Maybe</span>
-                    <span class="legend-item"><span class="dot unavailable"></span> Unavailable</span>
-                    <span class="legend-item"><span class="dot scheduled"></span> Scheduled</span>
+
+                <div class="unavailability-section">
+                    <div class="unavail-header">
+                        <h3>Mark Unavailable</h3>
+                        <button id="toggle-unavail" class="toggle-btn">+</button>
+                    </div>
+                    <form id="unavail-form" class="unavail-form hidden">
+                        <input type="text" id="unavail-person" placeholder="Who's unavailable?" required>
+                        <div class="date-range">
+                            <input type="date" id="unavail-start" required>
+                            <span>to</span>
+                            <input type="date" id="unavail-end" required>
+                        </div>
+                        <button type="submit" class="btn btn-block">Block it off</button>
+                    </form>
+                    <ul id="unavail-list" class="unavail-list"></ul>
                 </div>
             </section>
 
@@ -71,7 +76,7 @@
                     <div class="bucket-base"></div>
                 </div>
 
-                <p class="bucket-hint">Drag items onto the calendar to schedule them</p>
+                <p class="bucket-hint">Drag items onto the calendar to schedule them<br>Click an item to remove it</p>
             </section>
         </div>
     </div>
