@@ -11,10 +11,37 @@
         <header>
             <h1><span class="bucket-icon">🪣</span> The Bucket List</h1>
             <p class="subtitle">Victoria Summer Countdown</p>
-            <p class="instructions">Hold to drag · Click to expand · Swipe left to delete</p>
+            <p class="instructions">Click to expand · Swipe left to delete · Tap a date to schedule</p>
         </header>
 
         <div class="main-layout">
+            <section class="thoughts-section">
+                <div class="section-header">
+                    <h2>👀 Thoughts</h2>
+                    <button id="add-btn" class="add-btn" title="Toss one in">+</button>
+                </div>
+                <form id="activity-form" class="activity-form hidden">
+                    <input type="text" id="activity-name" placeholder="What's on the list?" required>
+                    <input type="text" id="activity-location" placeholder="📍 Location (optional)">
+                    <input type="url" id="activity-link" placeholder="🔗 Link (optional)">
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Toss it in!</button>
+                        <button type="button" id="cancel-add" class="btn btn-secondary">Nah</button>
+                    </div>
+                </form>
+                <div class="kanban-items" id="col-thoughts" data-column="thoughts"></div>
+
+                <div class="nah-section collapsed">
+                    <div class="nah-toggle" id="nah-toggle">
+                        <span>🚫 Nah (<span id="nah-count">0</span>)</span>
+                        <span class="section-arrow">▸</span>
+                    </div>
+                    <div class="nah-content">
+                        <div class="kanban-items" id="col-nah" data-column="nah"></div>
+                    </div>
+                </div>
+            </section>
+
             <section class="calendar-section">
                 <div class="calendar-nav">
                     <button id="prev-month" class="nav-btn">&larr;</button>
@@ -31,6 +58,8 @@
                     <div class="day-header">Sat</div>
                     <div id="calendar-days" class="calendar-days"></div>
                 </div>
+
+                <div id="scheduled-list" class="scheduled-list"></div>
 
                 <div class="unavailability-section collapsed">
                     <div class="unavail-header" id="unavail-section-toggle">
@@ -51,45 +80,10 @@
                     </div>
                 </div>
             </section>
-
-            <section class="kanban-section">
-                <div class="kanban-board">
-                    <div class="kanban-column thoughts">
-                        <div class="kanban-col-header">
-                            <h3>👀 Thoughts</h3>
-                            <button id="add-btn" class="add-btn" title="Toss one in">+</button>
-                        </div>
-                        <form id="activity-form" class="activity-form hidden">
-                            <input type="text" id="activity-name" placeholder="What's on the list?" required>
-                            <input type="text" id="activity-location" placeholder="📍 Location (optional)">
-                            <input type="url" id="activity-link" placeholder="🔗 Link (optional)">
-                            <input type="date" id="activity-date" placeholder="Date (optional)">
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">Toss it in!</button>
-                                <button type="button" id="cancel-add" class="btn btn-secondary">Nah</button>
-                            </div>
-                        </form>
-                        <div class="kanban-items" id="col-thoughts" data-column="thoughts"></div>
-                    </div>
-
-                    <div class="kanban-column yuh">
-                        <div class="kanban-col-header">
-                            <h3>🤝 Yuh</h3>
-                        </div>
-                        <div class="kanban-items" id="col-yuh" data-column="yuh"></div>
-                    </div>
-
-                    <div class="kanban-column nah">
-                        <div class="kanban-col-header">
-                            <h3>🚫 Nah</h3>
-                        </div>
-                        <div class="kanban-items" id="col-nah" data-column="nah"></div>
-                    </div>
-                </div>
-            </section>
         </div>
     </div>
 
+    <div id="date-picker-popover" class="popover hidden"></div>
     <div id="toast" class="toast hidden"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>

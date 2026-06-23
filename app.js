@@ -12,7 +12,9 @@ function init() {
 
     bindEvents();
     renderCalendar();
-    renderKanban();
+    renderThoughts();
+    renderNah();
+    renderScheduledList();
     renderUnavailList();
     initFirebase();
 }
@@ -31,7 +33,9 @@ function initFirebase() {
                 unavailabilities = [];
             }
             renderCalendar();
-            renderKanban();
+            renderThoughts();
+            renderNah();
+            renderScheduledList();
             renderUnavailList();
         });
     } catch (e) {
@@ -61,7 +65,13 @@ function bindEvents() {
     document.getElementById('cancel-add').addEventListener('click', toggleActivityForm);
     document.getElementById('activity-form').addEventListener('submit', addActivity);
 
-    document.getElementById('unavail-section-toggle').addEventListener('click', toggleUnavailSection);
+    document.getElementById('nah-toggle').addEventListener('click', () => {
+        document.querySelector('.nah-section').classList.toggle('collapsed');
+    });
+
+    document.getElementById('unavail-section-toggle').addEventListener('click', () => {
+        document.querySelector('.unavailability-section').classList.toggle('collapsed');
+    });
     document.getElementById('unavail-form').addEventListener('submit', addUnavailability);
 
     document.querySelectorAll('.kanban-items').forEach(col => {
@@ -78,6 +88,12 @@ function bindEvents() {
             handleColumnDrop(e, col.dataset.column);
         });
     });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.popover') && !e.target.closest('.day-cell')) {
+            hidePopover();
+        }
+    });
 }
 
 function toggleActivityForm() {
@@ -86,11 +102,6 @@ function toggleActivityForm() {
     if (!form.classList.contains('hidden')) {
         document.getElementById('activity-name').focus();
     }
-}
-
-function toggleUnavailSection() {
-    const section = document.querySelector('.unavailability-section');
-    section.classList.toggle('collapsed');
 }
 
 function isUnavailable(key) {
@@ -137,9 +148,9 @@ function renderCalendar() {
         cell.textContent = day;
 
         const key = dateKey(currentYear, currentMonth, day);
-        const dayUnavailable = isUnavailable(key);
         const cellDate = new Date(currentYear, currentMonth, day);
         const isPast = cellDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const dayUnavailable = isUnavailable(key);
 
         if (isPast) {
             cell.classList.add('past');
@@ -149,6 +160,10 @@ function renderCalendar() {
             if (hasActivity(key)) {
                 cell.classList.add('has-activity');
             }
+
+            cell.addEventListener('click', (e) => {
+                showDatePopover(e, key);
+            });
 
             cell.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -173,6 +188,47 @@ function renderCalendar() {
 
         container.appendChild(cell);
     }
+}
+
+function showDatePopover(e, dateKey) {
+    const thoughts = activities.filter(a => a.status === 'thoughts');
+    const popover = document.getElementById('date-picker-popover');
+
+    if (thoughts.length === 0) {
+        popover.innerHTML = '<p class="popover-empty">No thoughts to schedule</p>';
+    } else {
+        let html = `<h4>Schedule for ${formatDate(dateKey)}</h4>`;
+        thoughts.forEach(a => {
+            html += `<button class="popover-item" data-id="${a.id}">${escapeHtml(a.name)}</button>`;
+        });
+        popover.innerHTML = html;
+    }
+
+    const rect = e.target.getBoundingClientRect();
+    popover.style.left = rect.left + 'px';
+    popover.style.top = (rect.bottom + 8) + 'px';
+    popover.classList.remove('hidden');
+
+    popover.querySelectorAll('.popover-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = Number(btn.dataset.id);
+            const activity = activities.find(a => a.id === id);
+            if (activity) {
+                activity.status = 'yuh';
+                activity.scheduledDate = dateKey;
+                renderCalendar();
+                renderThoughts();
+                renderScheduledList();
+                saveToFirebase();
+                showToast(`${activity.name} — yuh!`);
+            }
+            hidePopover();
+        });
+    });
+}
+
+function hidePopover() {
+    document.getElementById('date-picker-popover').classList.add('hidden');
 }
 
 function showDayTooltip(cell, key, dayUnavailable) {
@@ -211,7 +267,6 @@ function addActivity(e) {
     const name = document.getElementById('activity-name').value.trim();
     const location = document.getElementById('activity-location').value.trim();
     const link = document.getElementById('activity-link').value.trim();
-    const date = document.getElementById('activity-date').value;
 
     if (!name) return;
 
@@ -220,40 +275,79 @@ function addActivity(e) {
         name,
         location: location || null,
         link: link || null,
-        status: date ? 'yuh' : 'thoughts',
-        scheduledDate: date || null
+        status: 'thoughts',
+        scheduledDate: null
     });
 
     document.getElementById('activity-form').reset();
     document.getElementById('activity-form').classList.add('hidden');
-    renderKanban();
+    renderThoughts();
     saveToFirebase();
     showToast('Tossed in the bucket!');
 }
 
-function renderKanban() {
-    const columns = {
-        thoughts: document.getElementById('col-thoughts'),
-        yuh: document.getElementById('col-yuh'),
-        nah: document.getElementById('col-nah')
-    };
+function renderThoughts() {
+    const col = document.getElementById('col-thoughts');
+    col.innerHTML = '';
+    const items = activities.filter(a => a.status === 'thoughts');
 
-    const emptyMessages = {
-        thoughts: 'No thoughts yet...<br>Hit + to think of something',
-        yuh: 'Drag items here or onto<br>a calendar day to lock them in',
-        nah: 'Drag here the ideas<br>that ain\'t it'
-    };
+    if (items.length === 0) {
+        col.innerHTML = '<p class="kanban-empty">No thoughts yet...<br>Hit + to think of something</p>';
+    } else {
+        items.forEach(a => col.appendChild(createKanbanItem(a)));
+    }
+}
 
-    Object.keys(columns).forEach(status => {
-        const col = columns[status];
-        col.innerHTML = '';
-        const items = activities.filter(a => a.status === status);
+function renderNah() {
+    const col = document.getElementById('col-nah');
+    col.innerHTML = '';
+    const items = activities.filter(a => a.status === 'nah');
 
-        if (items.length === 0) {
-            col.innerHTML = `<p class="kanban-empty">${emptyMessages[status]}</p>`;
-        } else {
-            items.forEach(a => col.appendChild(createKanbanItem(a)));
-        }
+    document.getElementById('nah-count').textContent = items.length;
+
+    if (items.length === 0) {
+        col.innerHTML = '<p class="kanban-empty">Nothing here yet</p>';
+    } else {
+        items.forEach(a => col.appendChild(createKanbanItem(a)));
+    }
+}
+
+function renderScheduledList() {
+    const container = document.getElementById('scheduled-list');
+    const scheduled = activities.filter(a => a.status === 'yuh' && a.scheduledDate);
+    scheduled.sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
+
+    if (scheduled.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '<h3>🤝 Scheduled</h3>';
+    scheduled.forEach(a => {
+        html += `
+            <div class="scheduled-item">
+                <span class="sched-date">${formatDate(a.scheduledDate)}</span>
+                <span class="sched-name">${escapeHtml(a.name)}</span>
+                <button class="sched-remove" data-id="${a.id}" title="Unschedule">✕</button>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll('.sched-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = Number(btn.dataset.id);
+            const activity = activities.find(a => a.id === id);
+            if (activity) {
+                activity.status = 'thoughts';
+                activity.scheduledDate = null;
+                renderCalendar();
+                renderThoughts();
+                renderScheduledList();
+                saveToFirebase();
+                showToast(`${activity.name} — back to thinking`);
+            }
+        });
     });
 }
 
@@ -275,7 +369,7 @@ function createKanbanItem(activity) {
 
     div.addEventListener('click', (e) => {
         if (e.target.closest('.item-edit-form')) return;
-        if (e.target.closest('.item-link')) return;
+        if (e.target.closest('.item-link-preview')) return;
         const isExpanded = div.classList.toggle('expanded');
         const existing = div.querySelector('.item-edit-form');
         if (isExpanded && !existing) {
@@ -295,7 +389,8 @@ function createKanbanItem(activity) {
         unschedBtn.addEventListener('click', () => {
             activity.status = 'thoughts';
             activity.scheduledDate = null;
-            renderKanban();
+            renderThoughts();
+            renderScheduledList();
             renderCalendar();
             saveToFirebase();
             showToast(`${activity.name} — back to thinking`);
@@ -308,7 +403,9 @@ function createKanbanItem(activity) {
     deleteBtn.textContent = '🗑️';
     deleteBtn.addEventListener('click', () => {
         activities = activities.filter(a => a.id !== activity.id);
-        renderKanban();
+        renderThoughts();
+        renderNah();
+        renderScheduledList();
         renderCalendar();
         saveToFirebase();
         showToast('Gone for good');
@@ -408,7 +505,9 @@ function createEditForm(activity) {
             activity.status = 'thoughts';
         }
 
-        renderKanban();
+        renderThoughts();
+        renderNah();
+        renderScheduledList();
         renderCalendar();
         saveToFirebase();
     };
@@ -429,7 +528,8 @@ function handleCalendarDrop(e, dateKey) {
 
     activity.status = 'yuh';
     activity.scheduledDate = dateKey;
-    renderKanban();
+    renderThoughts();
+    renderScheduledList();
     renderCalendar();
     saveToFirebase();
     showToast(`${activity.name} — yuh!`);
@@ -445,16 +545,17 @@ function handleColumnDrop(e, column) {
         activity.scheduledDate = null;
     }
 
-    renderKanban();
+    renderThoughts();
+    renderNah();
+    renderScheduledList();
     renderCalendar();
     saveToFirebase();
 
     const messages = {
         thoughts: `${activity.name} — back to thinking`,
-        yuh: `${activity.name} — yuh!`,
         nah: `${activity.name} — nah`
     };
-    showToast(messages[column]);
+    showToast(messages[column] || `${activity.name} moved`);
 }
 
 function showContextMenu(x, y, activity) {
@@ -471,7 +572,9 @@ function showContextMenu(x, y, activity) {
         thoughtsBtn.addEventListener('click', () => {
             activity.status = 'thoughts';
             activity.scheduledDate = null;
-            renderKanban();
+            renderThoughts();
+            renderNah();
+            renderScheduledList();
             renderCalendar();
             saveToFirebase();
             removeContextMenu();
@@ -486,7 +589,9 @@ function showContextMenu(x, y, activity) {
         nahBtn.addEventListener('click', () => {
             activity.status = 'nah';
             activity.scheduledDate = null;
-            renderKanban();
+            renderThoughts();
+            renderNah();
+            renderScheduledList();
             renderCalendar();
             saveToFirebase();
             removeContextMenu();
@@ -500,7 +605,9 @@ function showContextMenu(x, y, activity) {
     deleteBtn.textContent = '🗑️ Delete forever';
     deleteBtn.addEventListener('click', () => {
         activities = activities.filter(a => a.id !== activity.id);
-        renderKanban();
+        renderThoughts();
+        renderNah();
+        renderScheduledList();
         renderCalendar();
         saveToFirebase();
         removeContextMenu();
@@ -538,10 +645,10 @@ function addUnavailability(e) {
     });
 
     document.getElementById('unavail-form').reset();
-    document.getElementById('unavail-form').classList.add('hidden');
     renderUnavailList();
     renderCalendar();
-    renderKanban();
+    renderThoughts();
+    renderScheduledList();
     saveToFirebase();
     showToast('Blocked off!');
 }

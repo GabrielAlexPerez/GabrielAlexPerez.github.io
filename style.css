@@ -16,7 +16,6 @@
     --unavailable: #d4d4d4;
     --scheduled: #118ab2;
     --hot: #ef476f;
-    --warm: #ffd166;
     --chill: #06d6a0;
     --kicked: #9d8189;
     --radius: 12px;
@@ -35,7 +34,7 @@ body {
 }
 
 .app {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
@@ -51,12 +50,12 @@ header h1 {
 
 .bucket-icon {
     display: inline-block;
-    animation: wobble 2s ease-in-out infinite;
+    animation: wobble 0.8s ease-in-out infinite;
 }
 
 @keyframes wobble {
-    0%, 100% { transform: rotate(-3deg); }
-    50% { transform: rotate(3deg); }
+    0%, 100% { transform: rotate(-8deg); }
+    50% { transform: rotate(8deg); }
 }
 
 .subtitle {
@@ -65,6 +64,14 @@ header h1 {
     font-style: italic;
 }
 
+.instructions {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    font-style: italic;
+}
+
+/* Buttons */
 .btn {
     padding: 0.6rem 1.2rem;
     border: none;
@@ -113,44 +120,155 @@ header h1 {
     font-weight: 600;
     background: var(--accent);
     color: white;
-    transition: transform 0.1s, box-shadow 0.2s;
+    transition: transform 0.1s;
 }
 
 .btn-block:hover {
     background: var(--accent-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 /* Layout */
 .main-layout {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 2rem;
     align-items: start;
 }
 
-@media (max-width: 950px) {
+@media (max-width: 850px) {
     .main-layout {
         grid-template-columns: 1fr;
     }
 }
 
-/* Calendar */
+/* Thoughts section (left/top) */
+.thoughts-section {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.section-header h2 {
+    font-size: 1.3rem;
+}
+
+.add-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.add-btn:hover {
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 4px 16px rgba(255,107,53,0.4);
+}
+
+.activity-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    animation: slideDown 0.2s ease-out;
+}
+
+.activity-form.hidden {
+    display: none;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.activity-form input,
+.activity-form select {
+    padding: 0.6rem 0.8rem;
+    border: 2px solid var(--surface-2);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.85rem;
+    transition: border-color 0.15s;
+}
+
+.activity-form input:focus,
+.activity-form select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.form-actions .btn {
+    flex: 1;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+}
+
+/* Nah section */
+.nah-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--surface-2);
+}
+
+.nah-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 0.3rem 0;
+}
+
+.nah-section.collapsed .nah-content {
+    display: none;
+}
+
+.nah-section:not(.collapsed) .section-arrow {
+    transform: rotate(90deg);
+}
+
+.nah-content {
+    margin-top: 0.8rem;
+}
+
+.nah-content .kanban-item {
+    opacity: 0.5;
+    text-decoration: line-through;
+    border-left-color: var(--kicked);
+}
+
+/* Calendar section (right/bottom) */
 .calendar-section {
     background: var(--surface);
     border-radius: var(--radius);
     padding: 1.5rem;
     box-shadow: var(--shadow);
-    width: 360px;
-}
-
-@media (max-width: 950px) {
-    .calendar-section {
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
-    }
 }
 
 .calendar-nav {
@@ -276,6 +394,60 @@ header h1 {
     background: rgba(0, 180, 216, 0.2);
 }
 
+/* Scheduled list below calendar */
+.scheduled-list {
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--surface-2);
+}
+
+.scheduled-list:empty {
+    display: none;
+}
+
+.scheduled-list h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.6rem;
+    color: var(--text);
+}
+
+.scheduled-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.7rem;
+    background: var(--bg);
+    border-radius: 8px;
+    margin-bottom: 0.4rem;
+    border-left: 4px solid var(--scheduled);
+    font-size: 0.85rem;
+}
+
+.scheduled-item .sched-date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.scheduled-item .sched-name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.scheduled-item .sched-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0.2rem;
+    border-radius: 4px;
+}
+
+.scheduled-item .sched-remove:hover {
+    color: var(--hot);
+}
+
 /* Unavailability section */
 .unavailability-section {
     margin-top: 1.5rem;
@@ -395,133 +567,14 @@ header h1 {
 
 .unavail-item .unavail-delete:hover {
     color: var(--hot);
-    background: rgba(239, 71, 111, 0.1);
-}
-
-/* Kanban */
-.kanban-section {
-    min-width: 0;
-}
-
-.kanban-board {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1rem;
-}
-
-@media (max-width: 950px) {
-    .kanban-board {
-        grid-template-columns: 1fr;
-    }
-}
-
-.kanban-column {
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 1rem;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    min-height: 200px;
-}
-
-.kanban-column.thoughts {
-    border-top: 4px solid var(--teal);
-}
-
-.kanban-column.yuh {
-    border-top: 4px solid var(--scheduled);
-}
-
-.kanban-column.nah {
-    border-top: 4px solid var(--kicked);
-}
-
-.kanban-col-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.kanban-col-header h3 {
-    font-size: 0.95rem;
-    color: var(--text);
-}
-
-.add-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: none;
-    background: var(--accent);
-    color: white;
-    font-size: 1.3rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-}
-
-.add-btn:hover {
-    transform: rotate(90deg) scale(1.1);
-    box-shadow: 0 4px 16px rgba(255,107,53,0.4);
-}
-
-.activity-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    animation: slideDown 0.2s ease-out;
-}
-
-.activity-form.hidden {
-    display: none;
-}
-
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.activity-form input,
-.activity-form select {
-    padding: 0.6rem 0.8rem;
-    border: 2px solid var(--surface-2);
-    border-radius: var(--radius);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 0.85rem;
-    transition: border-color 0.15s;
-}
-
-.activity-form input:focus,
-.activity-form select:focus {
-    outline: none;
-    border-color: var(--accent);
-}
-
-.form-actions {
-    display: flex;
-    gap: 0.4rem;
-}
-
-.form-actions .btn {
-    flex: 1;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.8rem;
 }
 
 /* Kanban items */
 .kanban-items {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    min-height: 60px;
+    min-height: 40px;
     border-radius: 8px;
     padding: 0.3rem;
     transition: background 0.15s;
@@ -557,7 +610,6 @@ header h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.15s;
 }
 
 .swipe-delete {
@@ -618,6 +670,11 @@ header h1 {
     transform: rotate(90deg);
 }
 
+.kanban-item.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+}
+
 /* Inline edit form */
 .item-edit-form {
     display: none;
@@ -658,17 +715,6 @@ header h1 {
     text-decoration: underline;
 }
 
-.kanban-item.dragging {
-    opacity: 0.4;
-    transform: scale(0.95);
-}
-
-.nah .kanban-item {
-    opacity: 0.5;
-    text-decoration: line-through;
-    border-left-color: var(--kicked);
-}
-
 .kanban-empty {
     color: var(--text-muted);
     text-align: center;
@@ -678,44 +724,53 @@ header h1 {
     line-height: 1.4;
 }
 
-.instructions {
-    text-align: center;
-    font-size: 0.75rem;
+/* Date picker popover */
+.popover {
+    position: fixed;
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    padding: 0.8rem;
+    z-index: 999;
+    max-width: 220px;
+    animation: slideDown 0.15s ease-out;
+}
+
+.popover.hidden {
+    display: none;
+}
+
+.popover h4 {
+    font-size: 0.8rem;
     color: var(--text-muted);
-    margin-top: 1rem;
-    font-style: italic;
+    margin-bottom: 0.5rem;
 }
 
-/* Day tooltip */
-.day-tooltip {
-    position: absolute;
-    bottom: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--text);
-    color: white;
-    padding: 0.4rem 0.7rem;
+.popover-item {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    border: none;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: left;
     border-radius: 6px;
-    font-size: 0.7rem;
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 100;
-    animation: fadeIn 0.15s ease-out;
+    cursor: pointer;
+    margin-bottom: 0.3rem;
+    transition: background 0.1s;
 }
 
-.day-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--text);
+.popover-item:hover {
+    background: var(--surface-2);
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+.popover-empty {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 0.5rem;
 }
 
 /* Context menu */
@@ -750,6 +805,38 @@ header h1 {
 .context-menu button.danger:hover {
     background: rgba(239, 71, 111, 0.1);
     color: var(--hot);
+}
+
+/* Day tooltip */
+.day-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: white;
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.day-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--text);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 /* Toast */
