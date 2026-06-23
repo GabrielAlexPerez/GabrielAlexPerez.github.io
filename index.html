@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bucket List Calendar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>Bucket List Calendar</h1>
+            <p class="subtitle">Plan adventures together</p>
+        </header>
+
+        <div class="toolbar">
+            <button id="share-btn" class="btn btn-primary">Share Link</button>
+            <button id="clear-btn" class="btn btn-secondary">Clear All</button>
+            <button id="export-btn" class="btn btn-secondary">Export</button>
+        </div>
+
+        <div class="main-layout">
+            <section class="calendar-section">
+                <div class="calendar-nav">
+                    <button id="prev-month" class="nav-btn">&larr;</button>
+                    <h2 id="month-label"></h2>
+                    <button id="next-month" class="nav-btn">&rarr;</button>
+                </div>
+                <div class="calendar-grid">
+                    <div class="day-header">Sun</div>
+                    <div class="day-header">Mon</div>
+                    <div class="day-header">Tue</div>
+                    <div class="day-header">Wed</div>
+                    <div class="day-header">Thu</div>
+                    <div class="day-header">Fri</div>
+                    <div class="day-header">Sat</div>
+                    <div id="calendar-days" class="calendar-days"></div>
+                </div>
+                <div class="legend">
+                    <span class="legend-item"><span class="dot available"></span> Available</span>
+                    <span class="legend-item"><span class="dot maybe"></span> Maybe</span>
+                    <span class="legend-item"><span class="dot unavailable"></span> Unavailable</span>
+                </div>
+            </section>
+
+            <section class="activities-section">
+                <h2>Bucket List Activities</h2>
+                <form id="activity-form" class="activity-form">
+                    <input type="text" id="activity-name" placeholder="Activity name" required>
+                    <div class="date-range">
+                        <input type="date" id="activity-start" required>
+                        <span>to</span>
+                        <input type="date" id="activity-end" required>
+                    </div>
+                    <select id="activity-priority">
+                        <option value="high">High Priority</option>
+                        <option value="medium" selected>Medium Priority</option>
+                        <option value="low">Low Priority</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Add Activity</button>
+                </form>
+                <ul id="activity-list" class="activity-list"></ul>
+            </section>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
