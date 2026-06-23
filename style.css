@@ -233,6 +233,18 @@ header h1 {
     box-shadow: none;
 }
 
+.day-cell.past {
+    background: #2d3142;
+    color: #666;
+    cursor: not-allowed;
+    font-weight: 400;
+}
+
+.day-cell.past:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 .day-cell.today {
     font-weight: 800;
     outline: 2px solid var(--accent);

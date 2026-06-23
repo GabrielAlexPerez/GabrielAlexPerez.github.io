@@ -138,8 +138,12 @@ function renderCalendar() {
 
         const key = dateKey(currentYear, currentMonth, day);
         const dayUnavailable = isUnavailable(key);
+        const cellDate = new Date(currentYear, currentMonth, day);
+        const isPast = cellDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-        if (dayUnavailable) {
+        if (isPast) {
+            cell.classList.add('past');
+        } else if (dayUnavailable) {
             cell.classList.add('unavailable');
         } else {
             if (hasActivity(key)) {
