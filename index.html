@@ -37,12 +37,12 @@
                         <button id="toggle-unavail" class="toggle-btn">+</button>
                     </div>
                     <form id="unavail-form" class="unavail-form hidden">
-                        <input type="text" id="unavail-person" placeholder="Who's unavailable?" required>
                         <div class="date-range">
                             <input type="date" id="unavail-start" required>
                             <span>to</span>
                             <input type="date" id="unavail-end" required>
                         </div>
+                        <input type="text" id="unavail-reason" placeholder="Description (optional)">
                         <button type="submit" class="btn btn-block">Block it off</button>
                     </form>
                     <ul id="unavail-list" class="unavail-list"></ul>
@@ -51,9 +51,9 @@
 
             <section class="kanban-section">
                 <div class="kanban-board">
-                    <div class="kanban-column sloshing">
+                    <div class="kanban-column thoughts">
                         <div class="kanban-col-header">
-                            <h3>🌊 Sloshing Around</h3>
+                            <h3>👀 Thoughts</h3>
                             <button id="add-btn" class="add-btn" title="Toss one in">+</button>
                         </div>
                         <form id="activity-form" class="activity-form hidden">
@@ -68,21 +68,21 @@
                                 <button type="button" id="cancel-add" class="btn btn-secondary">Nah</button>
                             </div>
                         </form>
-                        <div class="kanban-items" id="col-sloshing" data-column="sloshing"></div>
+                        <div class="kanban-items" id="col-thoughts" data-column="thoughts"></div>
                     </div>
 
-                    <div class="kanban-column locked">
+                    <div class="kanban-column yuh">
                         <div class="kanban-col-header">
-                            <h3>🔒 Locked In</h3>
+                            <h3>🤝 Yuh</h3>
                         </div>
-                        <div class="kanban-items" id="col-locked" data-column="locked"></div>
+                        <div class="kanban-items" id="col-yuh" data-column="yuh"></div>
                     </div>
 
-                    <div class="kanban-column kicked">
+                    <div class="kanban-column nah">
                         <div class="kanban-col-header">
-                            <h3>⚰️ Kicked the Bucket</h3>
+                            <h3>🚫 Nah</h3>
                         </div>
-                        <div class="kanban-items" id="col-kicked" data-column="kicked"></div>
+                        <div class="kanban-items" id="col-nah" data-column="nah"></div>
                     </div>
                 </div>
             </section>

@@ -35,7 +35,6 @@ function bindEvents() {
     document.getElementById('toggle-unavail').addEventListener('click', toggleUnavailForm);
     document.getElementById('unavail-form').addEventListener('submit', addUnavailability);
 
-    // Kanban column drop zones
     document.querySelectorAll('.kanban-items').forEach(col => {
         col.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -63,9 +62,6 @@ function toggleActivityForm() {
 function toggleUnavailForm() {
     const form = document.getElementById('unavail-form');
     form.classList.toggle('hidden');
-    if (!form.classList.contains('hidden')) {
-        document.getElementById('unavail-person').focus();
-    }
 }
 
 function isUnavailable(key) {
@@ -75,6 +71,19 @@ function isUnavailable(key) {
         const end = new Date(u.end + 'T00:00:00');
         return d >= start && d <= end;
     });
+}
+
+function getUnavailReasons(key) {
+    const d = new Date(key + 'T00:00:00');
+    return unavailabilities.filter(u => {
+        const start = new Date(u.start + 'T00:00:00');
+        const end = new Date(u.end + 'T00:00:00');
+        return d >= start && d <= end;
+    }).map(u => u.reason || 'Unavailable');
+}
+
+function getActivitiesForDay(key) {
+    return activities.filter(a => a.status === 'yuh' && a.scheduledDate === key);
 }
 
 function renderCalendar() {
@@ -126,12 +135,42 @@ function renderCalendar() {
             cell.classList.add('today');
         }
 
+        cell.addEventListener('mouseenter', () => showDayTooltip(cell, key, dayUnavailable));
+        cell.addEventListener('mouseleave', () => hideDayTooltip(cell));
+
         container.appendChild(cell);
     }
 }
 
+function showDayTooltip(cell, key, dayUnavailable) {
+    let text = '';
+
+    if (dayUnavailable) {
+        const reasons = getUnavailReasons(key);
+        text = reasons.join(', ');
+    } else {
+        const dayActivities = getActivitiesForDay(key);
+        if (dayActivities.length > 0) {
+            text = dayActivities.map(a => a.name).join(', ');
+        }
+    }
+
+    if (!text) return;
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'day-tooltip';
+    tooltip.textContent = text;
+    cell.style.position = 'relative';
+    cell.appendChild(tooltip);
+}
+
+function hideDayTooltip(cell) {
+    const tooltip = cell.querySelector('.day-tooltip');
+    if (tooltip) tooltip.remove();
+}
+
 function hasActivity(dateKey) {
-    return activities.some(a => a.status === 'locked' && a.scheduledDate === dateKey);
+    return activities.some(a => a.status === 'yuh' && a.scheduledDate === dateKey);
 }
 
 function addActivity(e) {
@@ -145,7 +184,7 @@ function addActivity(e) {
         id: Date.now(),
         name,
         priority,
-        status: 'sloshing',
+        status: 'thoughts',
         scheduledDate: null
     });
 
@@ -158,15 +197,15 @@ function addActivity(e) {
 
 function renderKanban() {
     const columns = {
-        sloshing: document.getElementById('col-sloshing'),
-        locked: document.getElementById('col-locked'),
-        kicked: document.getElementById('col-kicked')
+        thoughts: document.getElementById('col-thoughts'),
+        yuh: document.getElementById('col-yuh'),
+        nah: document.getElementById('col-nah')
     };
 
     const emptyMessages = {
-        sloshing: 'Nothing sloshing yet...<br>Hit + to dream something up',
-        locked: 'Drag items here or onto<br>a calendar day to lock them in',
-        kicked: 'Drag here the ideas that<br>didn\'t make the cut'
+        thoughts: 'No thoughts yet...<br>Hit + to think of something',
+        yuh: 'Drag items here or onto<br>a calendar day to lock them in',
+        nah: 'Drag here the ideas<br>that ain\'t it'
     };
 
     Object.keys(columns).forEach(status => {
@@ -220,12 +259,12 @@ function handleCalendarDrop(e, dateKey) {
     if (!activity) return;
     if (isUnavailable(dateKey)) return;
 
-    activity.status = 'locked';
+    activity.status = 'yuh';
     activity.scheduledDate = dateKey;
     renderKanban();
     renderCalendar();
     saveToStorage();
-    showToast(`${activity.name} locked in!`);
+    showToast(`${activity.name} — yuh!`);
 }
 
 function handleColumnDrop(e, column) {
@@ -234,7 +273,7 @@ function handleColumnDrop(e, column) {
     if (!activity) return;
 
     activity.status = column;
-    if (column !== 'locked') {
+    if (column !== 'yuh') {
         activity.scheduledDate = null;
     }
 
@@ -243,9 +282,9 @@ function handleColumnDrop(e, column) {
     saveToStorage();
 
     const messages = {
-        sloshing: `${activity.name} back in the mix`,
-        locked: `${activity.name} locked in!`,
-        kicked: `${activity.name} kicked the bucket`
+        thoughts: `${activity.name} — back to thinking`,
+        yuh: `${activity.name} — yuh!`,
+        nah: `${activity.name} — nah`
     };
     showToast(messages[column]);
 }
@@ -258,34 +297,34 @@ function showContextMenu(x, y, activity) {
     menu.style.left = x + 'px';
     menu.style.top = y + 'px';
 
-    if (activity.status !== 'sloshing') {
-        const sloshBtn = document.createElement('button');
-        sloshBtn.textContent = '🌊 Back to sloshing';
-        sloshBtn.addEventListener('click', () => {
-            activity.status = 'sloshing';
+    if (activity.status !== 'thoughts') {
+        const thoughtsBtn = document.createElement('button');
+        thoughtsBtn.textContent = '👀 Back to thoughts';
+        thoughtsBtn.addEventListener('click', () => {
+            activity.status = 'thoughts';
             activity.scheduledDate = null;
             renderKanban();
             renderCalendar();
             saveToStorage();
             removeContextMenu();
-            showToast(`${activity.name} back in the mix`);
+            showToast(`${activity.name} — back to thinking`);
         });
-        menu.appendChild(sloshBtn);
+        menu.appendChild(thoughtsBtn);
     }
 
-    if (activity.status !== 'kicked') {
-        const kickBtn = document.createElement('button');
-        kickBtn.textContent = '⚰️ Kick it';
-        kickBtn.addEventListener('click', () => {
-            activity.status = 'kicked';
+    if (activity.status !== 'nah') {
+        const nahBtn = document.createElement('button');
+        nahBtn.textContent = '🚫 Nah';
+        nahBtn.addEventListener('click', () => {
+            activity.status = 'nah';
             activity.scheduledDate = null;
             renderKanban();
             renderCalendar();
             saveToStorage();
             removeContextMenu();
-            showToast(`${activity.name} kicked the bucket`);
+            showToast(`${activity.name} — nah`);
         });
-        menu.appendChild(kickBtn);
+        menu.appendChild(nahBtn);
     }
 
     const deleteBtn = document.createElement('button');
@@ -315,17 +354,17 @@ function removeContextMenu() {
 
 function addUnavailability(e) {
     e.preventDefault();
-    const person = document.getElementById('unavail-person').value.trim();
     const start = document.getElementById('unavail-start').value;
     const end = document.getElementById('unavail-end').value;
+    const reason = document.getElementById('unavail-reason').value.trim();
 
-    if (!person || !start || !end) return;
+    if (!start || !end) return;
 
-    unavailabilities.push({ id: Date.now(), person, start, end });
+    unavailabilities.push({ id: Date.now(), reason, start, end });
 
     activities.forEach(a => {
         if (a.scheduledDate && isUnavailable(a.scheduledDate)) {
-            a.status = 'sloshing';
+            a.status = 'thoughts';
             a.scheduledDate = null;
         }
     });
@@ -336,7 +375,7 @@ function addUnavailability(e) {
     renderCalendar();
     renderKanban();
     saveToStorage();
-    showToast(`${person} blocked off`);
+    showToast('Blocked off!');
 }
 
 function renderUnavailList() {
@@ -346,9 +385,10 @@ function renderUnavailList() {
     unavailabilities.forEach(u => {
         const li = document.createElement('li');
         li.className = 'unavail-item';
+        const label = u.reason || 'Unavailable';
         li.innerHTML = `
             <div class="unavail-info">
-                <span class="unavail-person">${escapeHtml(u.person)}</span>
+                <span class="unavail-person">${escapeHtml(label)}</span>
                 <span class="unavail-dates">${formatDate(u.start)} &ndash; ${formatDate(u.end)}</span>
             </div>
             <button class="unavail-delete" title="Remove">&times;</button>
