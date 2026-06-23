@@ -527,6 +527,43 @@ header h1 {
     outline-offset: -2px;
 }
 
+/* Swipe wrapper */
+.kanban-item-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.swipe-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    align-items: stretch;
+}
+
+.swipe-btn {
+    width: 40px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s;
+}
+
+.swipe-delete {
+    background: var(--hot);
+    color: white;
+}
+
+.swipe-move {
+    background: var(--teal);
+    color: white;
+}
+
 .kanban-item {
     background: var(--bg);
     border-radius: 8px;
@@ -535,19 +572,23 @@ header h1 {
     align-items: center;
     gap: 0.5rem;
     cursor: grab;
-    transition: transform 0.1s, box-shadow 0.15s;
+    transition: transform 0.2s ease, box-shadow 0.15s;
     border-left: 4px solid var(--warm);
     user-select: none;
     font-size: 0.85rem;
+    position: relative;
+    z-index: 2;
 }
 
 .kanban-item:active {
     cursor: grabbing;
 }
 
-.kanban-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+@media (hover: hover) {
+    .kanban-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+    }
 }
 
 .kanban-item.hot { border-left-color: var(--hot); }

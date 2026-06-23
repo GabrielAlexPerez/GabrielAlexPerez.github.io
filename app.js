@@ -246,6 +246,9 @@ function renderKanban() {
 }
 
 function createKanbanItem(activity) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'kanban-item-wrapper';
+
     const div = document.createElement('div');
     div.className = `kanban-item ${activity.priority}`;
     div.draggable = true;
@@ -261,6 +264,84 @@ function createKanbanItem(activity) {
         ${dateLabel}
     `;
 
+    const actions = document.createElement('div');
+    actions.className = 'swipe-actions';
+
+    if (activity.status === 'yuh') {
+        const unschedBtn = document.createElement('button');
+        unschedBtn.className = 'swipe-btn swipe-move';
+        unschedBtn.textContent = '👀';
+        unschedBtn.addEventListener('click', () => {
+            activity.status = 'thoughts';
+            activity.scheduledDate = null;
+            renderKanban();
+            renderCalendar();
+            saveToFirebase();
+            showToast(`${activity.name} — back to thinking`);
+        });
+        actions.appendChild(unschedBtn);
+    }
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'swipe-btn swipe-delete';
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.addEventListener('click', () => {
+        activities = activities.filter(a => a.id !== activity.id);
+        renderKanban();
+        renderCalendar();
+        saveToFirebase();
+        showToast('Gone for good');
+    });
+    actions.appendChild(deleteBtn);
+
+    wrapper.appendChild(div);
+    wrapper.appendChild(actions);
+
+    // Swipe handling for touch
+    let startX = 0;
+    let currentX = 0;
+    let swiping = false;
+
+    div.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        currentX = startX;
+        swiping = true;
+        div.style.transition = 'none';
+    });
+
+    div.addEventListener('touchmove', (e) => {
+        if (!swiping) return;
+        currentX = e.touches[0].clientX;
+        const diff = currentX - startX;
+        if (diff < 0) {
+            div.style.transform = `translateX(${Math.max(diff, -100)}px)`;
+        }
+    });
+
+    div.addEventListener('touchend', () => {
+        if (!swiping) return;
+        swiping = false;
+        div.style.transition = 'transform 0.2s ease';
+        const diff = currentX - startX;
+        if (diff < -50) {
+            div.style.transform = 'translateX(-80px)';
+            wrapper.classList.add('swiped');
+        } else {
+            div.style.transform = 'translateX(0)';
+            wrapper.classList.remove('swiped');
+        }
+    });
+
+    // Tap elsewhere to close
+    document.addEventListener('touchstart', (e) => {
+        if (!wrapper.contains(e.target) && wrapper.classList.contains('swiped')) {
+            div.style.transition = 'transform 0.2s ease';
+            div.style.transform = 'translateX(0)';
+            wrapper.classList.remove('swiped');
+        }
+    });
+
+    // Desktop drag
     div.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', activity.id.toString());
         div.classList.add('dragging');
@@ -269,12 +350,13 @@ function createKanbanItem(activity) {
         div.classList.remove('dragging');
     });
 
+    // Desktop right-click
     div.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         showContextMenu(e.pageX, e.pageY, activity);
     });
 
-    return div;
+    return wrapper;
 }
 
 function handleCalendarDrop(e, dateKey) {
