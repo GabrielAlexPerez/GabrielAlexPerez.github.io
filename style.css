@@ -271,6 +271,40 @@ header h1 {
     box-shadow: var(--shadow);
 }
 
+.calendar-and-yuh {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 850px) {
+    .calendar-and-yuh {
+        grid-template-columns: 1fr;
+    }
+}
+
+.calendar-panel {
+    min-width: 0;
+}
+
+.yuh-panel {
+    min-width: 160px;
+    max-width: 200px;
+}
+
+.yuh-panel h3 {
+    font-size: 1rem;
+    margin-bottom: 0.6rem;
+    color: var(--text);
+}
+
+@media (max-width: 850px) {
+    .yuh-panel {
+        max-width: none;
+    }
+}
+
 .calendar-nav {
     display: flex;
     align-items: center;
@@ -394,58 +428,18 @@ header h1 {
     background: rgba(0, 180, 216, 0.2);
 }
 
-/* Scheduled list below calendar */
+/* Yuh scheduled list */
 .scheduled-list {
-    margin-top: 1.2rem;
-    padding-top: 1rem;
-    border-top: 2px solid var(--surface-2);
-}
-
-.scheduled-list:empty {
-    display: none;
-}
-
-.scheduled-list h3 {
-    font-size: 0.95rem;
-    margin-bottom: 0.6rem;
-    color: var(--text);
-}
-
-.scheduled-item {
     display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 0.7rem;
-    background: var(--bg);
-    border-radius: 8px;
-    margin-bottom: 0.4rem;
-    border-left: 4px solid var(--scheduled);
-    font-size: 0.85rem;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 
-.scheduled-item .sched-date {
-    font-size: 0.7rem;
+.scheduled-list-empty {
+    font-size: 0.8rem;
     color: var(--text-muted);
-    white-space: nowrap;
-}
-
-.scheduled-item .sched-name {
-    flex: 1;
-    font-weight: 600;
-}
-
-.scheduled-item .sched-remove {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 0.2rem;
-    border-radius: 4px;
-}
-
-.scheduled-item .sched-remove:hover {
-    color: var(--hot);
+    font-style: italic;
+    padding: 0.5rem 0;
 }
 
 /* Unavailability section */
@@ -658,6 +652,13 @@ header h1 {
 .kanban-item .item-name {
     font-weight: 600;
     color: var(--text);
+}
+
+.kanban-item .item-subtitle {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
 }
 
 .kanban-item .item-expand {

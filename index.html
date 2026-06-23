@@ -43,23 +43,29 @@
             </section>
 
             <section class="calendar-section">
-                <div class="calendar-nav">
-                    <button id="prev-month" class="nav-btn">&larr;</button>
-                    <h2 id="month-label"></h2>
-                    <button id="next-month" class="nav-btn">&rarr;</button>
+                <div class="calendar-and-yuh">
+                    <div class="calendar-panel">
+                        <div class="calendar-nav">
+                            <button id="prev-month" class="nav-btn">&larr;</button>
+                            <h2 id="month-label"></h2>
+                            <button id="next-month" class="nav-btn">&rarr;</button>
+                        </div>
+                        <div class="calendar-grid">
+                            <div class="day-header">Sun</div>
+                            <div class="day-header">Mon</div>
+                            <div class="day-header">Tue</div>
+                            <div class="day-header">Wed</div>
+                            <div class="day-header">Thu</div>
+                            <div class="day-header">Fri</div>
+                            <div class="day-header">Sat</div>
+                            <div id="calendar-days" class="calendar-days"></div>
+                        </div>
+                    </div>
+                    <div class="yuh-panel">
+                        <h3>🤝 Yuh</h3>
+                        <div id="scheduled-list" class="scheduled-list"></div>
+                    </div>
                 </div>
-                <div class="calendar-grid">
-                    <div class="day-header">Sun</div>
-                    <div class="day-header">Mon</div>
-                    <div class="day-header">Tue</div>
-                    <div class="day-header">Wed</div>
-                    <div class="day-header">Thu</div>
-                    <div class="day-header">Fri</div>
-                    <div class="day-header">Sat</div>
-                    <div id="calendar-days" class="calendar-days"></div>
-                </div>
-
-                <div id="scheduled-list" class="scheduled-list"></div>
 
                 <div class="unavailability-section collapsed">
                     <div class="unavail-header" id="unavail-section-toggle">

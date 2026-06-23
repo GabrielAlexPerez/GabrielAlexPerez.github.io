@@ -314,41 +314,16 @@ function renderNah() {
 
 function renderScheduledList() {
     const container = document.getElementById('scheduled-list');
+    container.innerHTML = '';
     const scheduled = activities.filter(a => a.status === 'yuh' && a.scheduledDate);
     scheduled.sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
 
     if (scheduled.length === 0) {
-        container.innerHTML = '';
+        container.innerHTML = '<p class="scheduled-list-empty">Tap a date to schedule something</p>';
         return;
     }
 
-    let html = '<h3>🤝 Scheduled</h3>';
-    scheduled.forEach(a => {
-        html += `
-            <div class="scheduled-item">
-                <span class="sched-date">${formatDate(a.scheduledDate)}</span>
-                <span class="sched-name">${escapeHtml(a.name)}</span>
-                <button class="sched-remove" data-id="${a.id}" title="Unschedule">✕</button>
-            </div>
-        `;
-    });
-    container.innerHTML = html;
-
-    container.querySelectorAll('.sched-remove').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = Number(btn.dataset.id);
-            const activity = activities.find(a => a.id === id);
-            if (activity) {
-                activity.status = 'thoughts';
-                activity.scheduledDate = null;
-                renderCalendar();
-                renderThoughts();
-                renderScheduledList();
-                saveToFirebase();
-                showToast(`${activity.name} — back to thinking`);
-            }
-        });
-    });
+    scheduled.forEach(a => container.appendChild(createKanbanItem(a)));
 }
 
 function createKanbanItem(activity) {
@@ -360,9 +335,17 @@ function createKanbanItem(activity) {
     div.draggable = true;
     div.dataset.id = activity.id;
 
+    let subtitle = '';
+    if (activity.scheduledDate) {
+        subtitle = `<span class="item-subtitle">📅 ${formatDate(activity.scheduledDate)}</span>`;
+    } else if (activity.location) {
+        subtitle = `<span class="item-subtitle">📍 ${escapeHtml(activity.location)}</span>`;
+    }
+
     div.innerHTML = `
         <div class="item-content">
             <span class="item-name">${escapeHtml(activity.name)}</span>
+            ${subtitle}
         </div>
         <span class="item-expand">▸</span>
     `;
