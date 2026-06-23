@@ -327,9 +327,6 @@ function renderScheduledList() {
 }
 
 function createKanbanItem(activity) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'kanban-item-wrapper';
-
     const div = document.createElement('div');
     div.className = 'kanban-item';
     div.draggable = true;
@@ -353,6 +350,7 @@ function createKanbanItem(activity) {
     div.addEventListener('click', (e) => {
         if (e.target.closest('.item-edit-form')) return;
         if (e.target.closest('.item-link-preview')) return;
+        if (e.target.closest('.item-delete-btn')) return;
         const isExpanded = div.classList.toggle('expanded');
         const existing = div.querySelector('.item-edit-form');
         if (isExpanded && !existing) {
@@ -362,86 +360,6 @@ function createKanbanItem(activity) {
         }
     });
 
-    const actions = document.createElement('div');
-    actions.className = 'swipe-actions';
-
-    if (activity.status === 'yuh') {
-        const unschedBtn = document.createElement('button');
-        unschedBtn.className = 'swipe-btn swipe-move';
-        unschedBtn.textContent = '👀';
-        unschedBtn.addEventListener('click', () => {
-            activity.status = 'thoughts';
-            activity.scheduledDate = null;
-            renderThoughts();
-            renderScheduledList();
-            renderCalendar();
-            saveToFirebase();
-            showToast(`${activity.name} — back to thinking`);
-        });
-        actions.appendChild(unschedBtn);
-    }
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'swipe-btn swipe-delete';
-    deleteBtn.textContent = '🗑️';
-    deleteBtn.addEventListener('click', () => {
-        activities = activities.filter(a => a.id !== activity.id);
-        renderThoughts();
-        renderNah();
-        renderScheduledList();
-        renderCalendar();
-        saveToFirebase();
-        showToast('Gone for good');
-    });
-    actions.appendChild(deleteBtn);
-
-    wrapper.appendChild(div);
-    wrapper.appendChild(actions);
-
-    // Swipe handling for touch
-    let startX = 0;
-    let currentX = 0;
-    let swiping = false;
-
-    div.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        currentX = startX;
-        swiping = true;
-        div.style.transition = 'none';
-    });
-
-    div.addEventListener('touchmove', (e) => {
-        if (!swiping) return;
-        currentX = e.touches[0].clientX;
-        const diff = currentX - startX;
-        if (diff < 0) {
-            div.style.transform = `translateX(${Math.max(diff, -100)}px)`;
-        }
-    });
-
-    div.addEventListener('touchend', () => {
-        if (!swiping) return;
-        swiping = false;
-        div.style.transition = 'transform 0.2s ease';
-        const diff = currentX - startX;
-        if (diff < -50) {
-            div.style.transform = 'translateX(-80px)';
-            wrapper.classList.add('swiped');
-        } else {
-            div.style.transform = 'translateX(0)';
-            wrapper.classList.remove('swiped');
-        }
-    });
-
-    document.addEventListener('touchstart', (e) => {
-        if (!wrapper.contains(e.target) && wrapper.classList.contains('swiped')) {
-            div.style.transition = 'transform 0.2s ease';
-            div.style.transform = 'translateX(0)';
-            wrapper.classList.remove('swiped');
-        }
-    });
-
-    // Desktop drag
     div.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', activity.id.toString());
         div.classList.add('dragging');
@@ -450,13 +368,12 @@ function createKanbanItem(activity) {
         div.classList.remove('dragging');
     });
 
-    // Desktop right-click
     div.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         showContextMenu(e.pageX, e.pageY, activity);
     });
 
-    return wrapper;
+    return div;
 }
 
 function createEditForm(activity) {
@@ -468,6 +385,7 @@ function createEditForm(activity) {
         <input type="url" class="edit-link" value="${escapeHtml(activity.link || '')}" placeholder="🔗 Link">
         <input type="date" class="edit-date" value="${activity.scheduledDate || ''}">
         ${activity.link ? `<a class="item-link-preview" href="${escapeHtml(activity.link)}" target="_blank" rel="noopener">Open link ↗</a>` : ''}
+        <button class="item-delete-btn">🗑️ Delete</button>
     `;
 
     const saveChanges = () => {
@@ -498,6 +416,16 @@ function createEditForm(activity) {
     form.querySelectorAll('input').forEach(input => {
         input.addEventListener('change', saveChanges);
         input.addEventListener('blur', saveChanges);
+    });
+
+    form.querySelector('.item-delete-btn').addEventListener('click', () => {
+        activities = activities.filter(a => a.id !== activity.id);
+        renderThoughts();
+        renderNah();
+        renderScheduledList();
+        renderCalendar();
+        saveToFirebase();
+        showToast('Gone for good');
     });
 
     return form;
