@@ -61,7 +61,7 @@ function bindEvents() {
     document.getElementById('cancel-add').addEventListener('click', toggleActivityForm);
     document.getElementById('activity-form').addEventListener('submit', addActivity);
 
-    document.getElementById('toggle-unavail').addEventListener('click', toggleUnavailForm);
+    document.getElementById('unavail-section-toggle').addEventListener('click', toggleUnavailSection);
     document.getElementById('unavail-form').addEventListener('submit', addUnavailability);
 
     document.querySelectorAll('.kanban-items').forEach(col => {
@@ -88,9 +88,9 @@ function toggleActivityForm() {
     }
 }
 
-function toggleUnavailForm() {
-    const form = document.getElementById('unavail-form');
-    form.classList.toggle('hidden');
+function toggleUnavailSection() {
+    const section = document.querySelector('.unavailability-section');
+    section.classList.toggle('collapsed');
 }
 
 function isUnavailable(key) {
@@ -266,28 +266,23 @@ function createKanbanItem(activity) {
     div.draggable = true;
     div.dataset.id = activity.id;
 
-    let details = '';
-    if (activity.scheduledDate) {
-        details += `<span class="item-date">📅 ${formatDate(activity.scheduledDate)}</span>`;
-    }
-    if (activity.location) {
-        details += `<span class="item-location">📍 ${escapeHtml(activity.location)}</span>`;
-    }
-    if (activity.link) {
-        details += `<a class="item-link" href="${escapeHtml(activity.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Link</a>`;
-    }
-
     div.innerHTML = `
         <div class="item-content">
             <span class="item-name">${escapeHtml(activity.name)}</span>
-            ${details ? `<div class="item-details">${details}</div>` : ''}
         </div>
         <span class="item-expand">▸</span>
     `;
 
     div.addEventListener('click', (e) => {
+        if (e.target.closest('.item-edit-form')) return;
         if (e.target.closest('.item-link')) return;
-        div.classList.toggle('expanded');
+        const isExpanded = div.classList.toggle('expanded');
+        const existing = div.querySelector('.item-edit-form');
+        if (isExpanded && !existing) {
+            div.appendChild(createEditForm(activity));
+        } else if (!isExpanded && existing) {
+            existing.remove();
+        }
     });
 
     const actions = document.createElement('div');
@@ -382,6 +377,48 @@ function createKanbanItem(activity) {
     });
 
     return wrapper;
+}
+
+function createEditForm(activity) {
+    const form = document.createElement('div');
+    form.className = 'item-edit-form';
+    form.innerHTML = `
+        <input type="text" class="edit-name" value="${escapeHtml(activity.name)}" placeholder="Activity name">
+        <input type="text" class="edit-location" value="${escapeHtml(activity.location || '')}" placeholder="📍 Location">
+        <input type="url" class="edit-link" value="${escapeHtml(activity.link || '')}" placeholder="🔗 Link">
+        <input type="date" class="edit-date" value="${activity.scheduledDate || ''}">
+        ${activity.link ? `<a class="item-link-preview" href="${escapeHtml(activity.link)}" target="_blank" rel="noopener">Open link ↗</a>` : ''}
+    `;
+
+    const saveChanges = () => {
+        const newName = form.querySelector('.edit-name').value.trim();
+        const newLocation = form.querySelector('.edit-location').value.trim();
+        const newLink = form.querySelector('.edit-link').value.trim();
+        const newDate = form.querySelector('.edit-date').value;
+
+        if (newName) activity.name = newName;
+        activity.location = newLocation || null;
+        activity.link = newLink || null;
+
+        if (newDate && newDate !== activity.scheduledDate) {
+            activity.scheduledDate = newDate;
+            activity.status = 'yuh';
+        } else if (!newDate && activity.scheduledDate) {
+            activity.scheduledDate = null;
+            activity.status = 'thoughts';
+        }
+
+        renderKanban();
+        renderCalendar();
+        saveToFirebase();
+    };
+
+    form.querySelectorAll('input').forEach(input => {
+        input.addEventListener('change', saveChanges);
+        input.addEventListener('blur', saveChanges);
+    });
+
+    return form;
 }
 
 function handleCalendarDrop(e, dateKey) {

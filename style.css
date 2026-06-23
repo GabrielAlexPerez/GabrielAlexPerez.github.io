@@ -287,7 +287,8 @@ header h1 {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 0.8rem;
+    cursor: pointer;
+    padding: 0.3rem 0;
 }
 
 .unavail-header h3 {
@@ -295,24 +296,22 @@ header h1 {
     color: var(--text);
 }
 
-.toggle-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: none;
-    background: var(--unavailable);
-    color: var(--text);
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s;
+.section-arrow {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: transform 0.2s;
 }
 
-.toggle-btn:hover {
-    transform: scale(1.1);
+.unavailability-section:not(.collapsed) .section-arrow {
+    transform: rotate(90deg);
+}
+
+.unavail-content {
+    margin-top: 0.8rem;
+}
+
+.unavailability-section.collapsed .unavail-content {
+    display: none;
 }
 
 .unavail-form {
@@ -320,11 +319,6 @@ header h1 {
     flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 0.8rem;
-    animation: slideDown 0.2s ease-out;
-}
-
-.unavail-form.hidden {
-    display: none;
 }
 
 .unavail-form input {
@@ -582,6 +576,7 @@ header h1 {
     padding: 0.6rem 0.8rem;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
     cursor: grab;
     transition: transform 0.2s ease, box-shadow 0.15s;
@@ -623,32 +618,43 @@ header h1 {
     transform: rotate(90deg);
 }
 
-.kanban-item .item-details {
+/* Inline edit form */
+.item-edit-form {
     display: none;
     flex-direction: column;
-    gap: 0.2rem;
-    margin-top: 0.4rem;
-    padding-top: 0.4rem;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
     border-top: 1px solid var(--surface-2);
+    width: 100%;
 }
 
-.kanban-item.expanded .item-details {
+.kanban-item.expanded .item-edit-form {
     display: flex;
 }
 
-.kanban-item .item-date,
-.kanban-item .item-location {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+.item-edit-form input {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--surface-2);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.8rem;
+    width: 100%;
 }
 
-.kanban-item .item-link {
+.item-edit-form input:focus {
+    outline: none;
+    border-color: var(--teal);
+}
+
+.item-link-preview {
     font-size: 0.75rem;
     color: var(--teal);
     text-decoration: none;
 }
 
-.kanban-item .item-link:hover {
+.item-link-preview:hover {
     text-decoration: underline;
 }
 

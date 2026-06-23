@@ -32,21 +32,23 @@
                     <div id="calendar-days" class="calendar-days"></div>
                 </div>
 
-                <div class="unavailability-section">
-                    <div class="unavail-header">
+                <div class="unavailability-section collapsed">
+                    <div class="unavail-header" id="unavail-section-toggle">
                         <h3>Mark Unavailable</h3>
-                        <button id="toggle-unavail" class="toggle-btn">+</button>
+                        <span class="section-arrow">▸</span>
                     </div>
-                    <form id="unavail-form" class="unavail-form hidden">
-                        <div class="date-range">
-                            <input type="date" id="unavail-start" required>
-                            <span>to</span>
-                            <input type="date" id="unavail-end" required>
-                        </div>
-                        <input type="text" id="unavail-reason" placeholder="Description (optional)">
-                        <button type="submit" class="btn btn-block">Block it off</button>
-                    </form>
-                    <ul id="unavail-list" class="unavail-list"></ul>
+                    <div class="unavail-content">
+                        <form id="unavail-form">
+                            <div class="date-range">
+                                <input type="date" id="unavail-start" required>
+                                <span>to</span>
+                                <input type="date" id="unavail-end" required>
+                            </div>
+                            <input type="text" id="unavail-reason" placeholder="Description (optional)">
+                            <button type="submit" class="btn btn-block">Block it off</button>
+                        </form>
+                        <ul id="unavail-list" class="unavail-list"></ul>
+                    </div>
                 </div>
             </section>
 
