@@ -567,6 +567,40 @@ header h1 {
     transform: scale(0.95);
 }
 
+/* Context menu */
+.context-menu {
+    position: absolute;
+    background: var(--surface);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    z-index: 999;
+    overflow: hidden;
+    min-width: 160px;
+    animation: slideDown 0.12s ease-out;
+}
+
+.context-menu button {
+    display: block;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.context-menu button:hover {
+    background: var(--surface-2);
+}
+
+.context-menu button:last-child:hover {
+    background: rgba(239, 71, 111, 0.1);
+    color: var(--hot);
+}
+
 /* Toast */
 .toast {
     position: fixed;

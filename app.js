@@ -186,15 +186,59 @@ function createBucketItem(activity) {
         div.classList.remove('dragging');
     });
 
-    div.addEventListener('click', () => {
-        activities = activities.filter(a => a.id !== activity.id);
+    div.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showContextMenu(e.pageX, e.pageY, activity.id);
+    });
+
+    return div;
+}
+
+function showContextMenu(x, y, activityId) {
+    removeContextMenu();
+
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Remove from bucket';
+    deleteBtn.addEventListener('click', () => {
+        activities = activities.filter(a => a.id !== activityId);
         renderBucket();
         renderCalendar();
         saveToStorage();
         showToast('Removed from the bucket');
+        removeContextMenu();
     });
 
-    return div;
+    const unscheduleBtn = document.createElement('button');
+    const activity = activities.find(a => a.id === activityId);
+    if (activity && activity.scheduledDate) {
+        unscheduleBtn.textContent = 'Unschedule';
+        unscheduleBtn.addEventListener('click', () => {
+            activity.scheduledDate = null;
+            renderBucket();
+            renderCalendar();
+            saveToStorage();
+            showToast('Back in the bucket');
+            removeContextMenu();
+        });
+        menu.appendChild(unscheduleBtn);
+    }
+
+    menu.appendChild(deleteBtn);
+    document.body.appendChild(menu);
+
+    setTimeout(() => {
+        document.addEventListener('click', removeContextMenu, { once: true });
+    }, 0);
+}
+
+function removeContextMenu() {
+    const existing = document.querySelector('.context-menu');
+    if (existing) existing.remove();
 }
 
 function handleDrop(e, dateKey) {
