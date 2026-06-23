@@ -4,7 +4,6 @@ let currentYear, currentMonth;
 let activities = [];
 let unavailabilities = [];
 let db;
-let roomId;
 let roomRef;
 
 function init() {
@@ -12,37 +11,13 @@ function init() {
     currentYear = today.getFullYear();
     currentMonth = today.getMonth();
 
-    db = firebase.database();
-    roomId = getRoomId();
-    roomRef = db.ref('rooms/' + roomId);
+    renderCalendar();
+    renderKanban();
 
-    updateRoomStatus();
+    db = firebase.database();
+    roomRef = db.ref('bucket-list');
     listenForChanges();
     bindEvents();
-}
-
-function getRoomId() {
-    const hash = window.location.hash.slice(1);
-    if (hash) return hash;
-
-    const newId = generateRoomId();
-    window.location.hash = newId;
-    return newId;
-}
-
-function generateRoomId() {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let id = '';
-    for (let i = 0; i < 8; i++) {
-        id += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return id;
-}
-
-function updateRoomStatus() {
-    const status = document.getElementById('room-status');
-    status.textContent = `Room: ${roomId}`;
-    status.classList.add('connected');
 }
 
 function listenForChanges() {
@@ -84,9 +59,6 @@ function bindEvents() {
     document.getElementById('toggle-unavail').addEventListener('click', toggleUnavailForm);
     document.getElementById('unavail-form').addEventListener('submit', addUnavailability);
 
-    document.getElementById('copy-room-btn').addEventListener('click', copyRoomLink);
-    document.getElementById('new-room-btn').addEventListener('click', createNewRoom);
-
     document.querySelectorAll('.kanban-items').forEach(col => {
         col.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -101,27 +73,6 @@ function bindEvents() {
             handleColumnDrop(e, col.dataset.column);
         });
     });
-}
-
-function copyRoomLink() {
-    const url = window.location.origin + window.location.pathname + '#' + roomId;
-    navigator.clipboard.writeText(url).then(() => {
-        showToast('Link copied!');
-    }).catch(() => {
-        prompt('Copy this link:', url);
-    });
-}
-
-function createNewRoom() {
-    if (!confirm('Create a new empty room?')) return;
-    const newId = generateRoomId();
-    window.location.hash = newId;
-    roomId = newId;
-    roomRef.off();
-    roomRef = db.ref('rooms/' + roomId);
-    updateRoomStatus();
-    listenForChanges();
-    showToast('New room created!');
 }
 
 function toggleActivityForm() {
