@@ -3,17 +3,66 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
 let currentYear, currentMonth;
 let activities = [];
 let unavailabilities = [];
+let db;
+let roomId;
+let roomRef;
 
 function init() {
     const today = new Date();
     currentYear = today.getFullYear();
     currentMonth = today.getMonth();
 
-    loadFromStorage();
-    renderCalendar();
-    renderKanban();
-    renderUnavailList();
+    db = firebase.database();
+    roomId = getRoomId();
+    roomRef = db.ref('rooms/' + roomId);
+
+    updateRoomStatus();
+    listenForChanges();
     bindEvents();
+}
+
+function getRoomId() {
+    const hash = window.location.hash.slice(1);
+    if (hash) return hash;
+
+    const newId = generateRoomId();
+    window.location.hash = newId;
+    return newId;
+}
+
+function generateRoomId() {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let id = '';
+    for (let i = 0; i < 8; i++) {
+        id += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return id;
+}
+
+function updateRoomStatus() {
+    const status = document.getElementById('room-status');
+    status.textContent = `Room: ${roomId}`;
+    status.classList.add('connected');
+}
+
+function listenForChanges() {
+    roomRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            activities = data.activities || [];
+            unavailabilities = data.unavailabilities || [];
+        } else {
+            activities = [];
+            unavailabilities = [];
+        }
+        renderCalendar();
+        renderKanban();
+        renderUnavailList();
+    });
+}
+
+function saveToFirebase() {
+    roomRef.set({ activities, unavailabilities });
 }
 
 function bindEvents() {
@@ -35,6 +84,9 @@ function bindEvents() {
     document.getElementById('toggle-unavail').addEventListener('click', toggleUnavailForm);
     document.getElementById('unavail-form').addEventListener('submit', addUnavailability);
 
+    document.getElementById('copy-room-btn').addEventListener('click', copyRoomLink);
+    document.getElementById('new-room-btn').addEventListener('click', createNewRoom);
+
     document.querySelectorAll('.kanban-items').forEach(col => {
         col.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -49,6 +101,27 @@ function bindEvents() {
             handleColumnDrop(e, col.dataset.column);
         });
     });
+}
+
+function copyRoomLink() {
+    const url = window.location.origin + window.location.pathname + '#' + roomId;
+    navigator.clipboard.writeText(url).then(() => {
+        showToast('Link copied!');
+    }).catch(() => {
+        prompt('Copy this link:', url);
+    });
+}
+
+function createNewRoom() {
+    if (!confirm('Create a new empty room?')) return;
+    const newId = generateRoomId();
+    window.location.hash = newId;
+    roomId = newId;
+    roomRef.off();
+    roomRef = db.ref('rooms/' + roomId);
+    updateRoomStatus();
+    listenForChanges();
+    showToast('New room created!');
 }
 
 function toggleActivityForm() {
@@ -191,7 +264,7 @@ function addActivity(e) {
     document.getElementById('activity-form').reset();
     document.getElementById('activity-form').classList.add('hidden');
     renderKanban();
-    saveToStorage();
+    saveToFirebase();
     showToast('Tossed in the bucket!');
 }
 
@@ -263,7 +336,7 @@ function handleCalendarDrop(e, dateKey) {
     activity.scheduledDate = dateKey;
     renderKanban();
     renderCalendar();
-    saveToStorage();
+    saveToFirebase();
     showToast(`${activity.name} — yuh!`);
 }
 
@@ -279,7 +352,7 @@ function handleColumnDrop(e, column) {
 
     renderKanban();
     renderCalendar();
-    saveToStorage();
+    saveToFirebase();
 
     const messages = {
         thoughts: `${activity.name} — back to thinking`,
@@ -305,7 +378,7 @@ function showContextMenu(x, y, activity) {
             activity.scheduledDate = null;
             renderKanban();
             renderCalendar();
-            saveToStorage();
+            saveToFirebase();
             removeContextMenu();
             showToast(`${activity.name} — back to thinking`);
         });
@@ -320,7 +393,7 @@ function showContextMenu(x, y, activity) {
             activity.scheduledDate = null;
             renderKanban();
             renderCalendar();
-            saveToStorage();
+            saveToFirebase();
             removeContextMenu();
             showToast(`${activity.name} — nah`);
         });
@@ -334,7 +407,7 @@ function showContextMenu(x, y, activity) {
         activities = activities.filter(a => a.id !== activity.id);
         renderKanban();
         renderCalendar();
-        saveToStorage();
+        saveToFirebase();
         removeContextMenu();
         showToast('Gone for good');
     });
@@ -374,7 +447,7 @@ function addUnavailability(e) {
     renderUnavailList();
     renderCalendar();
     renderKanban();
-    saveToStorage();
+    saveToFirebase();
     showToast('Blocked off!');
 }
 
@@ -397,24 +470,10 @@ function renderUnavailList() {
             unavailabilities = unavailabilities.filter(x => x.id !== u.id);
             renderUnavailList();
             renderCalendar();
-            saveToStorage();
+            saveToFirebase();
         });
         list.appendChild(li);
     });
-}
-
-function saveToStorage() {
-    localStorage.setItem('bucketListCalendar', JSON.stringify({ activities, unavailabilities }));
-}
-
-function loadFromStorage() {
-    try {
-        const saved = JSON.parse(localStorage.getItem('bucketListCalendar'));
-        if (saved) {
-            activities = saved.activities || [];
-            unavailabilities = saved.unavailabilities || [];
-        }
-    } catch {}
 }
 
 function dateKey(year, month, day) {
