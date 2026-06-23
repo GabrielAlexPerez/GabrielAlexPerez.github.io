@@ -207,6 +207,7 @@ function addActivity(e) {
     const name = document.getElementById('activity-name').value.trim();
     const location = document.getElementById('activity-location').value.trim();
     const link = document.getElementById('activity-link').value.trim();
+    const date = document.getElementById('activity-date').value;
 
     if (!name) return;
 
@@ -215,8 +216,8 @@ function addActivity(e) {
         name,
         location: location || null,
         link: link || null,
-        status: 'thoughts',
-        scheduledDate: null
+        status: date ? 'yuh' : 'thoughts',
+        scheduledDate: date || null
     });
 
     document.getElementById('activity-form').reset();
@@ -263,13 +264,13 @@ function createKanbanItem(activity) {
 
     let details = '';
     if (activity.scheduledDate) {
-        details += `<span class="item-date">${formatDate(activity.scheduledDate)}</span>`;
+        details += `<span class="item-date">📅 ${formatDate(activity.scheduledDate)}</span>`;
     }
     if (activity.location) {
         details += `<span class="item-location">📍 ${escapeHtml(activity.location)}</span>`;
     }
     if (activity.link) {
-        details += `<a class="item-link" href="${escapeHtml(activity.link)}" target="_blank" rel="noopener">🔗 Link</a>`;
+        details += `<a class="item-link" href="${escapeHtml(activity.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Link</a>`;
     }
 
     div.innerHTML = `
@@ -277,7 +278,13 @@ function createKanbanItem(activity) {
             <span class="item-name">${escapeHtml(activity.name)}</span>
             ${details ? `<div class="item-details">${details}</div>` : ''}
         </div>
+        <span class="item-expand">▸</span>
     `;
+
+    div.addEventListener('click', (e) => {
+        if (e.target.closest('.item-link')) return;
+        div.classList.toggle('expanded');
+    });
 
     const actions = document.createElement('div');
     actions.className = 'swipe-actions';

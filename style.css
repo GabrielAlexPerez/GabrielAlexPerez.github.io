@@ -601,25 +601,39 @@ header h1 {
     color: var(--text);
 }
 
+.kanban-item .item-expand {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+}
+
+.kanban-item.expanded .item-expand {
+    transform: rotate(90deg);
+}
+
 .kanban-item .item-details {
+    display: none;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--surface-2);
+}
+
+.kanban-item.expanded .item-details {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem 0.6rem;
-    margin-top: 0.3rem;
 }
 
 .kanban-item .item-date,
 .kanban-item .item-location {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
-    white-space: nowrap;
 }
 
 .kanban-item .item-link {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--teal);
     text-decoration: none;
-    white-space: nowrap;
 }
 
 .kanban-item .item-link:hover {
@@ -644,6 +658,14 @@ header h1 {
     font-style: italic;
     padding: 1.5rem 0.5rem;
     line-height: 1.4;
+}
+
+.instructions {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+    font-style: italic;
 }
 
 /* Day tooltip */
